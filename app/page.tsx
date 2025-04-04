@@ -3,35 +3,38 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import Link from "next/link";
+import { BackgroundLines } from "@/components/ui/background-lines";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500">
-            Find Your Perfect Student Housing
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-muted-foreground">
-            Connect with roommates and discover housing options worldwide
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link
-              href="/listings"
-              className="px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
-            >
-              Find Housing
-            </Link>
-            <Link
-              href="/roommates"
-              className="px-6 py-3 bg-white text-blue-600 border border-blue-600 rounded-full hover:bg-blue-50 transition-colors"
-            >
-              Find Roommates
-            </Link>
+      <BackgroundLines className="h-[80vh]">
+        <section className="relative h-full flex items-center justify-center overflow-hidden">
+          <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500 whitespace-nowrap">
+              Find Your Perfect Student Housing
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 text-muted-foreground">
+              Connect with roommates and discover housing options worldwide
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Link
+                href="/listings"
+                className="px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+              >
+                Find Housing
+              </Link>
+              <Link
+                href="/roommates"
+                className="px-6 py-3 bg-white text-blue-600 border border-blue-600 rounded-full hover:bg-blue-50 transition-colors"
+              >
+                Find Roommates
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </BackgroundLines>
 
       {/* Features Section */}
       <section className="py-20 px-4">
