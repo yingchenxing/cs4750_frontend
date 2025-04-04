@@ -2,29 +2,10 @@ import Image from "next/image";
 import WorldMap from "@/components/ui/world-map";
 
 export default function Home() {
-  // 示例数据：展示一些主要城市之间的连接
-  const mapDots = [
-    {
-      start: { lat: 40.7128, lng: -74.0060, label: "New York" },
-      end: { lat: 51.5074, lng: -0.1278, label: "London" }
-    },
-    {
-      start: { lat: 35.6762, lng: 139.6503, label: "Tokyo" },
-      end: { lat: 48.8566, lng: 2.3522, label: "Paris" }
-    },
-    {
-      start: { lat: -33.8688, lng: 151.2093, label: "Sydney" },
-      end: { lat: 52.5200, lng: 13.4050, label: "Berlin" }
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <WorldMap dots={mapDots} lineColor="#3b82f6" />
-        </div>
+      <section className="relative h-[80vh] flex items-center justify-center">
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500">
             Find Your Perfect Student Housing
@@ -34,7 +15,7 @@ export default function Home() {
           </p>
           <div className="flex gap-4 justify-center">
             <a
-              href="/search"
+              href="/listings"
               className="px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
             >
               Find Housing
@@ -113,7 +94,7 @@ export default function Home() {
             Join thousands of students who have found their ideal housing and roommates
           </p>
           <a
-            href="/signup"
+            href="/auth/signup"
             className="px-8 py-4 bg-blue-600 text-white rounded-full text-lg hover:bg-blue-700 transition-colors inline-block"
           >
             Get Started Now

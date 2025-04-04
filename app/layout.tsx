@@ -1,23 +1,38 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
-import { Navbar } from "@/components/ui/navbar";
+import { FloatingDock } from "@/components/ui/floating-dock";
+import { Home, Search, Users, MessageSquare } from "lucide-react";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Student Housing Finder",
-  description: "Find roommates and housing for students worldwide",
+  title: "Student Housing",
+  description: "Find your perfect student housing and roommates",
 };
+
+const navItems = [
+  {
+    title: "Home",
+    icon: <Home className="h-5 w-5" />,
+    href: "/",
+  },
+  {
+    title: "Listings",
+    icon: <Search className="h-5 w-5" />,
+    href: "/listings",
+  },
+  {
+    title: "Roommates",
+    icon: <Users className="h-5 w-5" />,
+    href: "/roommates",
+  },
+  {
+    title: "Messages",
+    icon: <MessageSquare className="h-5 w-5" />,
+    href: "/messages",
+  },
+];
 
 export default function RootLayout({
   children,
@@ -25,16 +40,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Providers>
-          <div className="relative flex min-h-screen flex-col">
-            <Navbar />
-            <main className="flex-1">{children}</main>
-          </div>
-        </Providers>
+    <html lang="en">
+      <body className={inter.className}>
+        <div className="min-h-screen pb-20">
+          {children}
+          <FloatingDock
+            items={navItems}
+            desktopClassName="fixed bottom-8 left-1/2 -translate-x-1/2 z-50"
+            mobileClassName="fixed bottom-4 right-4 z-50"
+          />
+        </div>
       </body>
     </html>
   );
