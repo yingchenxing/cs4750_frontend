@@ -1,11 +1,11 @@
-import Image from "next/image";
+import Link from "next/link";
 import WorldMap from "@/components/ui/world-map";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center justify-center">
+      <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500">
             Find Your Perfect Student Housing
@@ -14,18 +14,18 @@ export default function Home() {
             Connect with roommates and discover housing options worldwide
           </p>
           <div className="flex gap-4 justify-center">
-            <a
+            <Link
               href="/listings"
               className="px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
             >
               Find Housing
-            </a>
-            <a
+            </Link>
+            <Link
               href="/roommates"
               className="px-6 py-3 bg-white text-blue-600 border border-blue-600 rounded-full hover:bg-blue-50 transition-colors"
             >
               Find Roommates
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -93,12 +93,12 @@ export default function Home() {
           <p className="text-xl text-muted-foreground mb-8">
             Join thousands of students who have found their ideal housing and roommates
           </p>
-          <a
+          <Link
             href="/auth/signup"
             className="px-8 py-4 bg-blue-600 text-white rounded-full text-lg hover:bg-blue-700 transition-colors inline-block"
           >
             Get Started Now
-          </a>
+          </Link>
         </div>
       </section>
     </div>
