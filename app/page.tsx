@@ -1,5 +1,8 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 import Link from "next/link";
-import WorldMap from "@/components/ui/world-map";
 
 export default function Home() {
   return (

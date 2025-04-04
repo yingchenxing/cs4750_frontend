@@ -2,227 +2,199 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Calendar, DollarSign, Building, Home, Heart, MessageSquare, Share2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { MessageSquare, Share2, Bookmark, MapPin, DollarSign, Calendar as CalendarIcon } from "lucide-react";
+import Image from "next/image";
 
 // Mock data for a single listing
 const mockListing = {
-  id: 1,
+  id: "1",
   title: "Cozy Studio Apartment Near Campus",
-  description: "A comfortable studio apartment within walking distance to the university. Perfect for a single student. The apartment features:\n\n- Fully furnished with modern furniture\n- In-unit washer and dryer\n- Central air conditioning\n- High-speed internet included\n- Secure building with 24/7 access\n- On-site parking available\n- Close to public transportation\n- Walking distance to grocery stores and restaurants",
-  propertyType: "Apartment",
-  location: "123 University Ave, College Town",
+  description: "Perfect for graduate students, this studio apartment offers a quiet and comfortable living space just 5 minutes walk from campus. Recently renovated with modern appliances and plenty of natural light.",
+  propertyType: "Studio",
+  location: "123 University Ave, Charlottesville, VA",
   rentPrice: 1200,
-  leaseDuration: 12,
-  availTimeStart: "2023-08-01",
-  availTimeEnd: "2024-07-31",
-  isSublease: false,
+  leaseDuration: "12 months",
+  availTimeStart: new Date("2024-05-01"),
+  availTimeEnd: new Date("2024-08-31"),
+  isSublease: true,
   isHouse: false,
   images: [
     "/listings/apartment1.jpg",
-    "/listings/apartment1-2.jpg",
-    "/listings/apartment1-3.jpg",
+    "/listings/apartment2.jpg",
+    "/listings/apartment3.jpg",
   ],
   amenities: [
+    "In-unit laundry",
+    "Dishwasher",
+    "Central AC",
+    "High-speed internet",
     "Furnished",
-    "Washer/Dryer",
-    "Air Conditioning",
-    "Internet Included",
-    "Parking",
-    "Security System",
   ],
   owner: {
-    id: 1,
+    id: "1",
     name: "John Doe",
-    avatar: "/avatars/john.jpg",
-    rating: 4.8,
-    responseRate: "98%",
-    responseTime: "1 hour",
+    email: "john@example.com",
+    phone: "+1 (555) 123-4567",
+    avatar: "/avatars/01.png",
+    listingsCount: 5,
+    memberSince: "2023",
   },
 };
 
 export default function ListingDetailsPage() {
-  const router = useRouter();
   const [activeImage, setActiveImage] = useState(0);
-  const [saved, setSaved] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-10">
-      <div className="grid gap-8 md:grid-cols-[2fr_1fr]">
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
-        <div className="space-y-6">
+        <div className="lg:col-span-2 space-y-8">
           {/* Image Gallery */}
-          <Card className="overflow-hidden">
-            <div className="aspect-video w-full bg-muted">
-              {/* Main Image */}
-              <div className="relative h-full">
-                <img
+          <Card>
+            <CardContent className="p-0">
+              <div className="relative aspect-video">
+                <Image
                   src={mockListing.images[activeImage]}
                   alt={mockListing.title}
-                  className="h-full w-full object-cover"
+                  fill
+                  className="object-cover rounded-t-lg"
                 />
-                <div className="absolute bottom-4 right-4 flex space-x-2">
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    onClick={() => setSaved(!saved)}
-                  >
-                    <Heart
-                      className={cn("h-4 w-4", saved && "fill-current text-red-500")}
-                    />
-                  </Button>
-                  <Button variant="secondary" size="icon">
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                </div>
               </div>
-            </div>
-            {/* Thumbnail Navigation */}
-            <div className="grid grid-cols-3 gap-2 p-4">
-              {mockListing.images.map((image, index) => (
-                <button
-                  key={index}
-                  className={cn(
-                    "aspect-video overflow-hidden rounded-lg border-2",
-                    activeImage === index
-                      ? "border-primary"
-                      : "border-transparent"
-                  )}
-                  onClick={() => setActiveImage(index)}
-                >
-                  <img
-                    src={image}
-                    alt={`${mockListing.title} - Image ${index + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+              <div className="p-4 flex gap-2 overflow-x-auto">
+                {mockListing.images.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveImage(index)}
+                    className={`relative w-20 h-20 flex-shrink-0 ${activeImage === index ? "ring-2 ring-blue-500" : ""
+                      }`}
+                  >
+                    <Image
+                      src={image}
+                      alt={`${mockListing.title} - Image ${index + 1}`}
+                      fill
+                      className="object-cover rounded-md"
+                    />
+                  </button>
+                ))}
+              </div>
+            </CardContent>
           </Card>
 
           {/* Listing Details */}
           <Card>
             <CardHeader>
-              <div className="flex items-start justify-between">
+              <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="text-2xl">{mockListing.title}</CardTitle>
-                  <CardDescription className="flex items-center">
-                    <MapPin className="mr-1 h-4 w-4" />
+                  <p className="text-muted-foreground flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
                     {mockListing.location}
-                  </CardDescription>
+                  </p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Contact
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsSaved(!isSaved)}
+                  >
+                    <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
+                  </Button>
+                  <Button variant="outline" size="icon">
+                    <Share2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex items-center">
-                  <DollarSign className="mr-2 h-4 w-4" />
-                  <span className="font-medium">${mockListing.rentPrice}/month</span>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Property Type</p>
+                  <p className="font-medium">{mockListing.propertyType}</p>
                 </div>
-                <div className="flex items-center">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  <span>{mockListing.leaseDuration} months</span>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Rent</p>
+                  <p className="font-medium flex items-center gap-1">
+                    <DollarSign className="h-4 w-4" />
+                    {mockListing.rentPrice}/month
+                  </p>
                 </div>
-                <div className="flex items-center">
-                  {mockListing.isHouse ? (
-                    <Home className="mr-2 h-4 w-4" />
-                  ) : (
-                    <Building className="mr-2 h-4 w-4" />
-                  )}
-                  <span>{mockListing.propertyType}</span>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Lease Duration</p>
+                  <p className="font-medium">{mockListing.leaseDuration}</p>
                 </div>
-                {mockListing.isSublease && (
-                  <div className="flex items-center text-amber-600">
-                    <span>Sublease</span>
-                  </div>
-                )}
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Availability</p>
+                  <p className="font-medium flex items-center gap-1">
+                    <CalendarIcon className="h-4 w-4" />
+                    {mockListing.availTimeStart.toLocaleDateString()} -{" "}
+                    {mockListing.availTimeEnd.toLocaleDateString()}
+                  </p>
+                </div>
               </div>
 
-              <div className="mt-6 space-y-4">
-                <h3 className="text-lg font-medium">Description</h3>
-                <p className="whitespace-pre-line text-muted-foreground">
-                  {mockListing.description}
-                </p>
+              <div className="space-y-4">
+                <h3 className="font-semibold">Description</h3>
+                <p className="text-muted-foreground">{mockListing.description}</p>
               </div>
 
-              <div className="mt-6 space-y-4">
-                <h3 className="text-lg font-medium">Amenities</h3>
-                <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
-                  {mockListing.amenities.map((amenity) => (
-                    <div
-                      key={amenity}
-                      className="flex items-center rounded-lg border p-2"
-                    >
-                      <span className="text-sm">{amenity}</span>
-                    </div>
+              <div className="space-y-4">
+                <h3 className="font-semibold">Amenities</h3>
+                <ul className="grid grid-cols-2 gap-2">
+                  {mockListing.amenities.map((amenity, index) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-blue-500" />
+                      {amenity}
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Owner Info */}
           <Card>
             <CardHeader>
               <CardTitle>Listed by</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <Avatar>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-12 w-12">
                   <AvatarImage src={mockListing.owner.avatar} />
-                  <AvatarFallback>
-                    {mockListing.owner.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
+                  <AvatarFallback>{mockListing.owner.name[0]}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-medium">{mockListing.owner.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    Member since 2022
-                  </div>
+                  <p className="font-medium">{mockListing.owner.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Member since {mockListing.owner.memberSince}
+                  </p>
                 </div>
               </div>
-
-              <div className="grid gap-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Response rate</span>
-                  <span className="font-medium">{mockListing.owner.responseRate}</span>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Listings</p>
+                  <p className="font-medium">{mockListing.owner.listingsCount}</p>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Response time</span>
-                  <span className="font-medium">{mockListing.owner.responseTime}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Rating</span>
-                  <span className="font-medium">{mockListing.owner.rating}/5</span>
+                <div>
+                  <p className="text-muted-foreground">Response rate</p>
+                  <p className="font-medium">100%</p>
                 </div>
               </div>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-2">
-              <Button className="w-full">
+              <Button className="w-full" variant="outline">
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Message
               </Button>
-              <Button variant="outline" className="w-full">
+              <Button className="w-full" variant="outline">
                 View Profile
               </Button>
-            </CardFooter>
+            </CardContent>
           </Card>
 
           {/* Availability Calendar */}
@@ -231,20 +203,11 @@ export default function ListingDetailsPage() {
               <CardTitle>Availability</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Available from</span>
-                  <span className="font-medium">
-                    {new Date(mockListing.availTimeStart).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Available until</span>
-                  <span className="font-medium">
-                    {new Date(mockListing.availTimeEnd).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
+              <Calendar
+                mode="single"
+                selected={mockListing.availTimeStart}
+                className="rounded-md border"
+              />
             </CardContent>
           </Card>
         </div>

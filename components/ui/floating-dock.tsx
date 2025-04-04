@@ -13,12 +13,7 @@ import {
 import Link from "next/link";
 import { useRef, useState } from "react";
 import {
-  Home,
-  Search,
-  Users,
-  MessageSquare,
   UserCircle,
-  UserPlus,
   User,
   LogOut,
   Settings,

@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Upload } from "lucide-react";
+import Image from "next/image";
 
 interface FormData {
   title: string;
@@ -23,12 +24,12 @@ interface FormData {
   location: string;
   rentPrice: string;
   leaseDuration: string;
-  availTimeStart: Date;
-  availTimeEnd: Date;
+  availTimeStart: Date | undefined;
+  availTimeEnd: Date | undefined;
   isSublease: boolean;
   isHouse: boolean;
   subleaseReason: string;
-  images: File[];
+  images: string[];
 }
 
 export default function CreateListingPage() {
@@ -58,7 +59,7 @@ export default function CreateListingPage() {
       const newImages = Array.from(e.target.files);
       setFormData((prev) => ({
         ...prev,
-        images: [...prev.images, ...newImages],
+        images: [...prev.images, ...newImages.map((file) => URL.createObjectURL(file))],
       }));
     }
   };
@@ -287,11 +288,14 @@ export default function CreateListingPage() {
                         key={index}
                         className="relative aspect-video overflow-hidden rounded-lg border bg-muted"
                       >
-                        <img
-                          src={URL.createObjectURL(image)}
-                          alt={`Property image ${index + 1}`}
-                          className="h-full w-full object-cover"
-                        />
+                        <div className="relative aspect-video">
+                          <Image
+                            src={image}
+                            alt={`Property image ${index + 1}`}
+                            fill
+                            className="object-cover rounded-lg"
+                          />
+                        </div>
                         <Button
                           variant="destructive"
                           size="icon"
