@@ -3,7 +3,8 @@
 ## Base URL
 
 ```
-https://api.studenthousing.com/v1
+https://cs4750.onrender.com/api
+http://localhost:8080/api (testing locally)
 ```
 
 ## Authentication
@@ -21,38 +22,30 @@ Authorization: Bearer <your_jwt_token>
 #### Register User
 
 ```http
-POST /auth/register
+POST /api/auth/signup
 ```
 
 Request body:
 
 ```json
+
 {
+  "username": "string",
   "email": "string",
   "password": "string",
-  "firstName": "string",
-  "lastName": "string",
-  "university": "string"
+  "phoneNumber": "optional"
 }
+
 ```
 
 Response:
 
-```json
-{
-  "id": "string",
-  "email": "string",
-  "firstName": "string",
-  "lastName": "string",
-  "university": "string",
-  "token": "string"
-}
-```
+User registered
 
 #### Login
 
 ```http
-POST /auth/login
+POST /api/auth/login
 ```
 
 Request body:
@@ -66,18 +59,7 @@ Request body:
 
 Response:
 
-```json
-{
-  "token": "string",
-  "user": {
-    "id": "string",
-    "email": "string",
-    "firstName": "string",
-    "lastName": "string",
-    "university": "string"
-  }
-}
-```
+Login successful
 
 ### Listings
 
