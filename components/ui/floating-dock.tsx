@@ -30,6 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LoginResponse } from "@/app/services/auth";
+import { useAuth } from "@/app/context/AuthContext";
 
 interface FloatingDockProps {
   items: { title: string; icon: React.ReactNode; href: string }[];
@@ -46,6 +47,8 @@ export const FloatingDock = ({
   isAuthenticated,
   user,
 }: FloatingDockProps) => {
+  const { logout } = useAuth();
+
   const authItems = isAuthenticated ? [
     {
       title: "Profile",
@@ -89,11 +92,11 @@ export const FloatingDock = ({
                 Settings
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/auth/logout" className="flex items-center text-destructive">
+            <DropdownMenuItem>
+              <button onClick={logout} className="flex items-center text-destructive w-full">
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
-              </Link>
+              </button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
