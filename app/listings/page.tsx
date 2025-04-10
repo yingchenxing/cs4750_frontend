@@ -104,8 +104,7 @@ export default function ListingsPage() {
     const matchesListingType =
       filters.listingType === "all" ||
       (filters.listingType === "sublease" && listing.isSublease) ||
-      (filters.listingType === "house" && listing.isHouse) ||
-      (filters.listingType === "apartment" && !listing.isHouse && !listing.isSublease);
+      (filters.listingType === "not_sublease" && !listing.isSublease);
 
     return (
       matchesSearch &&
@@ -177,9 +176,8 @@ export default function ListingsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="apartment">Regular Apartment</SelectItem>
+                    <SelectItem value="not_sublease">Not Sublease</SelectItem>
                     <SelectItem value="sublease">Sublease</SelectItem>
-                    <SelectItem value="house">House</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

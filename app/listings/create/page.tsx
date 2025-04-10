@@ -27,7 +27,6 @@ interface FormData {
   availTimeStart: Date | undefined;
   availTimeEnd: Date | undefined;
   isSublease: boolean;
-  isHouse: boolean;
   subleaseReason: string;
   images: string[];
 }
@@ -45,7 +44,6 @@ export default function CreateListingPage() {
     availTimeStart: new Date(),
     availTimeEnd: new Date(),
     isSublease: false,
-    isHouse: false,
     subleaseReason: "",
     images: [],
   });
@@ -268,15 +266,6 @@ export default function CreateListingPage() {
                     />
                   </div>
                 )}
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="isHouse"
-                    checked={formData.isHouse}
-                    onCheckedChange={(checked: boolean) => handleChange("isHouse", checked)}
-                  />
-                  <Label htmlFor="isHouse">This is a house</Label>
-                </div>
               </TabsContent>
 
               <TabsContent value="images" className="space-y-4">
