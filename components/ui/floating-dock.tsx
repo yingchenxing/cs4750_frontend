@@ -51,10 +51,10 @@ export const FloatingDock = ({
       title: "Profile",
       icon: (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+          <DropdownMenuTrigger className="h-full w-full">
+            <div className="w-full h-full rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors text-base font-medium">
               {user?.username.charAt(0).toUpperCase()}
-            </button>
+            </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
@@ -154,9 +154,9 @@ const FloatingDockMobile = ({
                 <Link
                   href={item.href}
                   key={item.title}
-                  className="h-10 w-10 rounded-full bg-gray-50 dark:bg-neutral-900 flex items-center justify-center"
+                  className="h-10 w-10 rounded-full bg-gray-50 dark:bg-neutral-900 flex items-center justify-center overflow-hidden"
                 >
-                  <div className="h-4 w-4">{item.icon}</div>
+                  <div className="h-5 w-5 flex items-center justify-center">{item.icon}</div>
                 </Link>
               </motion.div>
             ))}
@@ -165,7 +165,7 @@ const FloatingDockMobile = ({
       </AnimatePresence>
       <button
         onClick={() => setOpen(!open)}
-        className="h-10 w-10 rounded-full bg-gray-50 dark:bg-neutral-800 flex items-center justify-center"
+        className="h-10 w-10 rounded-full bg-gray-50 dark:bg-neutral-800 flex items-center justify-center overflow-hidden"
       >
         <IconLayoutNavbarCollapse className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
       </button>
@@ -209,54 +209,36 @@ function IconContainer({
   href: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState(false);
 
   const distance = useTransform(mouseX, (val) => {
     const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
     return val - bounds.x - bounds.width / 2;
   });
 
-  const widthTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
-  const heightTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
+  const sizeTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
+  const iconSizeTransform = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
 
-  const widthTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
-  const heightTransformIcon = useTransform(
-    distance,
-    [-150, 0, 150],
-    [20, 40, 20]
-  );
-
-  const width = useSpring(widthTransform, {
-    mass: 0.1,
-    stiffness: 150,
-    damping: 12,
-  });
-  const height = useSpring(heightTransform, {
+  const size = useSpring(sizeTransform, {
     mass: 0.1,
     stiffness: 150,
     damping: 12,
   });
 
-  const widthIcon = useSpring(widthTransformIcon, {
+  const iconSize = useSpring(iconSizeTransform, {
     mass: 0.1,
     stiffness: 150,
     damping: 12,
   });
-  const heightIcon = useSpring(heightTransformIcon, {
-    mass: 0.1,
-    stiffness: 150,
-    damping: 12,
-  });
-
-  const [hovered, setHovered] = useState(false);
 
   return (
     <Link href={href}>
       <motion.div
         ref={ref}
-        style={{ width, height }}
+        style={{ width: size, height: size }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="aspect-square rounded-full bg-gray-200 dark:bg-neutral-800 flex items-center justify-center relative"
+        className="aspect-square rounded-full bg-gray-200 dark:bg-neutral-800 flex items-center justify-center relative overflow-hidden"
       >
         <AnimatePresence>
           {hovered && (
@@ -271,7 +253,7 @@ function IconContainer({
           )}
         </AnimatePresence>
         <motion.div
-          style={{ width: widthIcon, height: heightIcon }}
+          style={{ width: iconSize, height: iconSize }}
           className="flex items-center justify-center"
         >
           {icon}

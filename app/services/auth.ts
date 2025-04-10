@@ -19,7 +19,7 @@ export interface LoginResponse {
   email: string
   phoneNumber: string
   passwordHash: string
-  profilePicture: string
+  profilePicture: string | null
 }
 
 export interface SignupRequest {
