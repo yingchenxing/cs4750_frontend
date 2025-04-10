@@ -29,45 +29,38 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LoginResponse } from "@/app/services/auth";
 
-// Mock auth state - replace with your actual auth state management
-const isAuthenticated = false;
-const user = {
-  name: "John Doe",
-  email: "john@example.com",
-  avatar: "/avatars/01.png"
-};
+interface FloatingDockProps {
+  items: { title: string; icon: React.ReactNode; href: string }[];
+  desktopClassName?: string;
+  mobileClassName?: string;
+  isAuthenticated: boolean;
+  user: LoginResponse | null;
+}
 
 export const FloatingDock = ({
   items,
   desktopClassName,
   mobileClassName,
-}: {
-  items: { title: string; icon: React.ReactNode; href: string }[];
-  desktopClassName?: string;
-  mobileClassName?: string;
-}) => {
+  isAuthenticated,
+  user,
+}: FloatingDockProps) => {
   const authItems = isAuthenticated ? [
     {
       title: "Profile",
       icon: (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="h-10 w-10 rounded-full overflow-hidden">
-              <Image
-                src={user.avatar}
-                alt={user.name}
-                width={40}
-                height={40}
-                className="object-cover"
-              />
+            <button className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+              {user?.username.charAt(0).toUpperCase()}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
+                <p className="text-sm font-medium">{user?.username}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -89,15 +82,15 @@ export const FloatingDock = ({
                 Notifications
               </Link>
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/settings" className="flex items-center">
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/auth/logout" className="flex items-center text-red-600">
+              <Link href="/auth/logout" className="flex items-center text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </Link>
@@ -105,14 +98,14 @@ export const FloatingDock = ({
           </DropdownMenuContent>
         </DropdownMenu>
       ),
-      href: "#"
-    }
+      href: "/profile",
+    },
   ] : [
     {
       title: "Login",
       icon: <UserCircle className="h-5 w-5" />,
-      href: "/auth/login"
-    }
+      href: "/auth/login",
+    },
   ];
 
   const allItems = [...items, ...authItems];

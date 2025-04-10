@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { FloatingDock } from "@/components/ui/floating-dock";
 import { Home, Search, MessageSquare, Users } from "lucide-react";
-
-// Mock auth state - replace with your actual auth state management
-const isAuthenticated = false;
+import { useAuth } from "@/app/context/AuthContext";
 
 export function Navbar() {
+  const { user, isAuthenticated } = useAuth();
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:relative">
       <FloatingDock
@@ -35,6 +35,8 @@ export function Navbar() {
             href: "/messages",
           },
         ]}
+        isAuthenticated={isAuthenticated}
+        user={user}
       />
     </nav>
   );
