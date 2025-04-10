@@ -21,13 +21,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean register(SignupRequest request) {
-        if (userRepository.existsByEmail(request.email)) return false;
+        if (userRepository.existsByEmail(request.getEmail())) return false;
 
         User user = new User();
-        user.setUsername(request.username);
-        user.setEmail(request.email);
-        user.setPasswordHash(passwordEncoder.encode(request.password));
-        user.setPhoneNumber(request.phoneNumber);
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setPhoneNumber(request.getPhoneNumber());
         userRepository.save(user);
         return true;
     }
@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User loginAndGetUser(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail());
-        if (user != null && passwordEncoder.matches(request.password, user.getPasswordHash())) {
+        if (user != null && passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             return user;
         }
         return null;

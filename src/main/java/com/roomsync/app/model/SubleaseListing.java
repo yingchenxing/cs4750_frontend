@@ -1,20 +1,13 @@
 package com.roomsync.app.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Data
 @Entity
-public class SubleaseListing {
-    @Id
-    private Long subleaseListingId;
+@Table(name = "sublease_listings")
+public class SubleaseListing extends Listing{
 
-    @ManyToOne
-    @JoinColumn(name = "listing")
-    private Listing listing;
-
+    @Column(name = "sublease_reason", nullable = false)
     private String subleaseReason;
 }
