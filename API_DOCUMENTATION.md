@@ -40,7 +40,13 @@ Request body:
 
 Response:
 
-User registered
+```json
+
+{
+  "email": "string"
+}
+
+```
 
 #### Login
 
@@ -59,7 +65,14 @@ Request body:
 
 Response:
 
-Login successful
+{
+"userId": Long,
+"username": "String",
+"email": "String",
+"phoneNumber": String,
+"passwordHash": "String",
+"profilePicture": string
+}
 
 ### Listings
 
@@ -140,7 +153,7 @@ Response:
 #### Create Listing
 
 ```http
-POST /listings
+POST /api/listing
 ```
 
 Request body:

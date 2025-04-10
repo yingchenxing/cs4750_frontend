@@ -7,5 +7,7 @@ import com.roomsync.app.model.dto.SignupRequest;
 
 public interface UserService {
     boolean register(SignupRequest request);
-    boolean login(LoginRequest request);
+//    boolean login(LoginRequest request);
+
+    User loginAndGetUser(LoginRequest request);
 }

@@ -32,10 +32,19 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
+//    @Override
+//    public boolean login(LoginRequest request) {
+//        User user = userRepository.findByEmail(request.email);
+//        return user != null && passwordEncoder.matches(request.password, user.getPasswordHash());
+//    }
+
     @Override
-    public boolean login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email);
-        return user != null && passwordEncoder.matches(request.password, user.getPasswordHash());
+    public User loginAndGetUser(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail());
+        if (user != null && passwordEncoder.matches(request.password, user.getPasswordHash())) {
+            return user;
+        }
+        return null;
     }
 
 }
