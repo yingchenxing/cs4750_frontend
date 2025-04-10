@@ -31,7 +31,8 @@ public class SecurityConfig {
                 registry.addMapping("/**")
                         .allowedOrigins("https://cs4750.netlify.app")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*");
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
             }
         };
     }
