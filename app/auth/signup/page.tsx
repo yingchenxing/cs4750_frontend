@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { authService } from "@/app/services/auth";
+import { toast } from "sonner";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -14,9 +16,8 @@ export default function SignupPage() {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
-    phoneNumber: "",
     password: "",
-    confirmPassword: "",
+    phoneNumber: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,11 +32,20 @@ export default function SignupPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Mock API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Redirect to login page after successful signup
-    router.push("/auth/login");
+    try {
+      await authService.signup(formData);
+      toast.success("Registration successful! Please login.");
+      router.push("/auth/login");
+    } catch (error: any) {
+      if (error.response?.data === "Email already exists") {
+        toast.error("Email already exists. Please use a different email.");
+      } else {
+        toast.error("Registration failed. Please try again.");
+      }
+      console.error("Signup error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -54,6 +64,7 @@ export default function SignupPage() {
               <Input
                 id="username"
                 name="username"
+                type="text"
                 value={formData.username}
                 onChange={handleChange}
                 required
@@ -72,16 +83,6 @@ export default function SignupPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
-              <Input
-                id="phoneNumber"
-                name="phoneNumber"
-                type="tel"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
@@ -93,18 +94,17 @@ export default function SignupPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
               <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
+                id="phoneNumber"
+                name="phoneNumber"
+                type="tel"
+                value={formData.phoneNumber}
                 onChange={handleChange}
-                required
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Create account"}
+              {isLoading ? "Creating account..." : "Sign up"}
             </Button>
           </form>
         </CardContent>

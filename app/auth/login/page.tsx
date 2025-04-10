@@ -7,9 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { authService } from "@/app/services/auth";
+import { useAuth } from "@/app/context/AuthContext";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { setUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -28,11 +32,17 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Mock API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Redirect to home page after successful login
-    router.push("/");
+    try {
+      const response = await authService.login(formData);
+      setUser(response);
+      toast.success("Login successful!");
+      router.push("/");
+    } catch (error) {
+      toast.error("Login failed. Please check your credentials.");
+      console.error("Login error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

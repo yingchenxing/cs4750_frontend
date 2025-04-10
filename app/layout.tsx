@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { FloatingDock } from "@/components/ui/floating-dock";
 import { Home, Search, Users, MessageSquare } from "lucide-react";
+import { AuthProvider } from "./context/AuthContext";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,14 +44,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="min-h-screen pb-20">
-          {children}
-          <FloatingDock
-            items={navItems}
-            desktopClassName="fixed bottom-8 left-1/2 -translate-x-1/2 z-50"
-            mobileClassName="fixed bottom-4 right-4 z-50"
-          />
-        </div>
+        <AuthProvider>
+          <div className="min-h-screen pb-20">
+            {children}
+            <FloatingDock
+              items={navItems}
+              desktopClassName="fixed bottom-8 left-1/2 -translate-x-1/2 z-50"
+              mobileClassName="fixed bottom-4 right-4 z-50"
+            />
+          </div>
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );
