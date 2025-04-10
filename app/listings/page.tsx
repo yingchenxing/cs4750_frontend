@@ -157,8 +157,14 @@ export default function ListingsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="Apartment">Apartment</SelectItem>
-                    <SelectItem value="House">House</SelectItem>
+                    <SelectItem value="apartment">Apartment</SelectItem>
+                    <SelectItem value="condo">Condo</SelectItem>
+                    <SelectItem value="house">House</SelectItem>
+                    <SelectItem value="studio">Studio</SelectItem>
+                    <SelectItem value="villa">Villa</SelectItem>
+                    <SelectItem value="loft">Loft</SelectItem>
+                    <SelectItem value="townhouse">Townhouse</SelectItem>
+                    <SelectItem value="cabin">Cabin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -256,11 +262,10 @@ export default function ListingsPage() {
           </div>
 
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="all">All Listings</TabsTrigger>
-              <TabsTrigger value="apartments">Apartments</TabsTrigger>
-              <TabsTrigger value="subleases">Subleases</TabsTrigger>
-              <TabsTrigger value="houses">Houses</TabsTrigger>
+              <TabsTrigger value="sublease">Sublease</TabsTrigger>
+              <TabsTrigger value="not_sublease">Not Sublease</TabsTrigger>
             </TabsList>
             <TabsContent value="all" className="space-y-4 pt-4">
               <div className="grid gap-6 md:grid-cols-2">
@@ -323,57 +328,7 @@ export default function ListingsPage() {
                 ))}
               </div>
             </TabsContent>
-            <TabsContent value="apartments" className="space-y-4 pt-4">
-              <div className="grid gap-6 md:grid-cols-2">
-                {filteredListings
-                  .filter((listing) => !listing.isHouse && !listing.isSublease)
-                  .map((listing) => (
-                    <Card key={listing.id} className="overflow-hidden">
-                      <div className="aspect-video w-full bg-muted">
-                        {/* Image would go here */}
-                        <div className="flex h-full items-center justify-center">
-                          <Building className="h-12 w-12 text-muted-foreground" />
-                        </div>
-                      </div>
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle>{listing.title}</CardTitle>
-                            <CardDescription className="flex items-center">
-                              <MapPin className="mr-1 h-3 w-3" />
-                              {listing.location}
-                            </CardDescription>
-                          </div>
-                          <Button variant="ghost" size="icon">
-                            <Heart className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm line-clamp-2">{listing.description}</p>
-                        <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                          <div className="flex items-center">
-                            <DollarSign className="mr-1 h-4 w-4" />
-                            <span>${listing.rentPrice}/month</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Calendar className="mr-1 h-4 w-4" />
-                            <span>{listing.leaseDuration} months</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button className="w-full" asChild>
-                          <Link href={`/listings/${listing.id}`}>
-                            View Details
-                          </Link>
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-              </div>
-            </TabsContent>
-            <TabsContent value="subleases" className="space-y-4 pt-4">
+            <TabsContent value="sublease" className="space-y-4 pt-4">
               <div className="grid gap-6 md:grid-cols-2">
                 {filteredListings
                   .filter((listing) => listing.isSublease)
@@ -426,16 +381,16 @@ export default function ListingsPage() {
                   ))}
               </div>
             </TabsContent>
-            <TabsContent value="houses" className="space-y-4 pt-4">
+            <TabsContent value="not_sublease" className="space-y-4 pt-4">
               <div className="grid gap-6 md:grid-cols-2">
                 {filteredListings
-                  .filter((listing) => listing.isHouse)
+                  .filter((listing) => !listing.isSublease)
                   .map((listing) => (
                     <Card key={listing.id} className="overflow-hidden">
                       <div className="aspect-video w-full bg-muted">
                         {/* Image would go here */}
                         <div className="flex h-full items-center justify-center">
-                          <Home className="h-12 w-12 text-muted-foreground" />
+                          <Building className="h-12 w-12 text-muted-foreground" />
                         </div>
                       </div>
                       <CardHeader>
@@ -462,6 +417,10 @@ export default function ListingsPage() {
                           <div className="flex items-center">
                             <Calendar className="mr-1 h-4 w-4" />
                             <span>{listing.leaseDuration} months</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Building className="mr-1 h-4 w-4" />
+                            <span>{listing.propertyType}</span>
                           </div>
                         </div>
                       </CardContent>

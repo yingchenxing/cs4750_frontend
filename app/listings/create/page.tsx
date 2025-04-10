@@ -37,7 +37,7 @@ export default function CreateListingPage() {
   const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
-    propertyType: "Apartment",
+    propertyType: "apartment",
     location: "",
     rentPrice: "",
     leaseDuration: "12",
@@ -239,8 +239,14 @@ export default function CreateListingPage() {
                       <SelectValue placeholder="Select property type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Apartment">Apartment</SelectItem>
-                      <SelectItem value="House">House</SelectItem>
+                      <SelectItem value="apartment">Apartment</SelectItem>
+                      <SelectItem value="condo">Condo</SelectItem>
+                      <SelectItem value="house">House</SelectItem>
+                      <SelectItem value="studio">Studio</SelectItem>
+                      <SelectItem value="villa">Villa</SelectItem>
+                      <SelectItem value="loft">Loft</SelectItem>
+                      <SelectItem value="townhouse">Townhouse</SelectItem>
+                      <SelectItem value="cabin">Cabin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
