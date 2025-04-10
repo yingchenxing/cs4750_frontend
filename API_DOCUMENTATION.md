@@ -9,11 +9,7 @@ http://localhost:8080/api (testing locally)
 
 ## Authentication
 
-All API requests require authentication using a JWT token. Include the token in the Authorization header:
-
-```
-Authorization: Bearer <your_jwt_token>
-```
+Currently, the API uses basic authentication with password hashing using BCrypt. JWT token authentication is planned but not yet implemented.
 
 ## API Endpoints
 
@@ -28,25 +24,29 @@ POST /api/auth/signup
 Request body:
 
 ```json
-
 {
   "username": "string",
   "email": "string",
   "password": "string",
-  "phoneNumber": "optional"
+  "phoneNumber": "string (optional)"
 }
-
 ```
 
-Response:
+Response (200 OK):
 
 ```json
-
 {
   "email": "string"
 }
-
 ```
+
+Error Response (400 Bad Request):
+
+```json
+"Email already exists"
+```
+
+Note: The login endpoint is currently under development and not yet available.
 
 #### Login
 
