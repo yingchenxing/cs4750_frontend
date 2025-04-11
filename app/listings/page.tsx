@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,69 +9,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Filter, MapPin, Calendar, DollarSign, Home, Building, Heart } from "lucide-react";
-
-// Mock data for listings
-const mockListings = [
-  {
-    id: 1,
-    title: "Cozy Studio Apartment Near Campus",
-    description: "A comfortable studio apartment within walking distance to the university. Perfect for a single student.",
-    propertyType: "Apartment",
-    location: "123 University Ave, College Town",
-    rentPrice: 1200,
-    leaseDuration: 12,
-    availTimeStart: "2023-08-01",
-    availTimeEnd: "2024-07-31",
-    isSublease: false,
-    isHouse: false,
-    image: "/listings/apartment1.jpg",
-  },
-  {
-    id: 2,
-    title: "2BR/1BA Apartment - Sublease Available",
-    description: "Looking for someone to take over my lease for the summer semester. Fully furnished with all utilities included.",
-    propertyType: "Apartment",
-    location: "456 College Blvd, College Town",
-    rentPrice: 800,
-    leaseDuration: 3,
-    availTimeStart: "2023-06-01",
-    availTimeEnd: "2023-08-31",
-    isSublease: true,
-    isHouse: false,
-    subleaseReason: "Summer internship in another city",
-    image: "/listings/apartment2.jpg",
-  },
-  {
-    id: 3,
-    title: "3BR/2BA House with Backyard",
-    description: "Spacious house with a large backyard. Perfect for a group of friends. Close to campus and shopping.",
-    propertyType: "House",
-    location: "789 Student St, College Town",
-    rentPrice: 1800,
-    leaseDuration: 12,
-    availTimeStart: "2023-08-15",
-    availTimeEnd: "2024-08-14",
-    isSublease: false,
-    isHouse: true,
-    image: "/listings/house1.jpg",
-  },
-  {
-    id: 4,
-    title: "1BR/1BA Apartment - Quiet Neighborhood",
-    description: "Quiet apartment in a residential neighborhood. Close to public transportation and grocery stores.",
-    propertyType: "Apartment",
-    location: "321 Peaceful Ln, College Town",
-    rentPrice: 950,
-    leaseDuration: 12,
-    availTimeStart: "2023-09-01",
-    availTimeEnd: "2024-08-31",
-    isSublease: false,
-    isHouse: false,
-    image: "/listings/apartment3.jpg",
-  },
-];
+import { getListings, Listing } from "@/app/services/listings";
 
 export default function ListingsPage() {
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
     propertyType: "all",
@@ -81,8 +24,24 @@ export default function ListingsPage() {
     listingType: "all",
   });
 
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const data = await getListings();
+        setListings(data);
+      } catch (err) {
+        setError("Failed to fetch listings. Please try again later.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchListings();
+  }, []);
+
   // Filter listings based on search query and filters
-  const filteredListings = mockListings.filter((listing) => {
+  const filteredListings = listings.filter((listing) => {
     const matchesSearch =
       listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       listing.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -101,20 +60,39 @@ export default function ListingsPage() {
       filters.leaseDuration === "all" ||
       listing.leaseDuration.toString() === filters.leaseDuration;
 
-    const matchesListingType =
-      filters.listingType === "all" ||
-      (filters.listingType === "sublease" && listing.isSublease) ||
-      (filters.listingType === "not_sublease" && !listing.isSublease);
-
     return (
       matchesSearch &&
       matchesPropertyType &&
       matchesMinPrice &&
       matchesMaxPrice &&
-      matchesLeaseDuration &&
-      matchesListingType
+      matchesLeaseDuration
     );
   });
+
+  if (loading) {
+    return (
+      <div className="container mx-auto max-w-7xl px-4 py-10">
+        <div className="flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4 text-lg">Loading listings...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto max-w-7xl px-4 py-10">
+        <div className="flex items-center justify-center">
+          <div className="text-center text-red-500">
+            <p className="text-lg">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-10">
@@ -165,25 +143,6 @@ export default function ListingsPage() {
                     <SelectItem value="loft">Loft</SelectItem>
                     <SelectItem value="townhouse">Townhouse</SelectItem>
                     <SelectItem value="cabin">Cabin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="listingType">Listing Type</Label>
-                <Select
-                  value={filters.listingType}
-                  onValueChange={(value) =>
-                    setFilters({ ...filters, listingType: value })
-                  }
-                >
-                  <SelectTrigger id="listingType">
-                    <SelectValue placeholder="Select listing type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="not_sublease">Not Sublease</SelectItem>
-                    <SelectItem value="sublease">Sublease</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -261,181 +220,63 @@ export default function ListingsPage() {
             </div>
           </div>
 
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="all">All Listings</TabsTrigger>
-              <TabsTrigger value="sublease">Sublease</TabsTrigger>
-              <TabsTrigger value="not_sublease">Not Sublease</TabsTrigger>
-            </TabsList>
-            <TabsContent value="all" className="space-y-4 pt-4">
-              <div className="grid gap-6 md:grid-cols-2">
-                {filteredListings.map((listing) => (
-                  <Card key={listing.id} className="overflow-hidden">
-                    <div className="aspect-video w-full bg-muted">
-                      {/* Image would go here */}
-                      <div className="flex h-full items-center justify-center">
-                        {listing.isHouse ? (
-                          <Home className="h-12 w-12 text-muted-foreground" />
-                        ) : (
-                          <Building className="h-12 w-12 text-muted-foreground" />
-                        )}
-                      </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            {filteredListings.map((listing) => (
+              <Card key={listing.listing_id} className="overflow-hidden">
+                <div className="aspect-video w-full bg-muted">
+                  {listing.image ? (
+                    <img
+                      src={listing.image}
+                      alt={listing.title}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <Building className="h-12 w-12 text-muted-foreground" />
                     </div>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle>{listing.title}</CardTitle>
-                          <CardDescription className="flex items-center">
-                            <MapPin className="mr-1 h-3 w-3" />
-                            {listing.location}
-                          </CardDescription>
-                        </div>
-                        <Button variant="ghost" size="icon">
-                          <Heart className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm line-clamp-2">{listing.description}</p>
-                      <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                        <div className="flex items-center">
-                          <DollarSign className="mr-1 h-4 w-4" />
-                          <span>${listing.rentPrice}/month</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Calendar className="mr-1 h-4 w-4" />
-                          <span>{listing.leaseDuration} months</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Building className="mr-1 h-4 w-4" />
-                          <span>{listing.propertyType}</span>
-                        </div>
-                        {listing.isSublease && (
-                          <div className="flex items-center text-amber-600">
-                            <span>Sublease</span>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button className="w-full" asChild>
-                        <Link href={`/listings/${listing.id}`}>
-                          View Details
-                        </Link>
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-            <TabsContent value="sublease" className="space-y-4 pt-4">
-              <div className="grid gap-6 md:grid-cols-2">
-                {filteredListings
-                  .filter((listing) => listing.isSublease)
-                  .map((listing) => (
-                    <Card key={listing.id} className="overflow-hidden">
-                      <div className="aspect-video w-full bg-muted">
-                        {/* Image would go here */}
-                        <div className="flex h-full items-center justify-center">
-                          <Building className="h-12 w-12 text-muted-foreground" />
-                        </div>
-                      </div>
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle>{listing.title}</CardTitle>
-                            <CardDescription className="flex items-center">
-                              <MapPin className="mr-1 h-3 w-3" />
-                              {listing.location}
-                            </CardDescription>
-                          </div>
-                          <Button variant="ghost" size="icon">
-                            <Heart className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm line-clamp-2">{listing.description}</p>
-                        <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                          <div className="flex items-center">
-                            <DollarSign className="mr-1 h-4 w-4" />
-                            <span>${listing.rentPrice}/month</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Calendar className="mr-1 h-4 w-4" />
-                            <span>{listing.leaseDuration} months</span>
-                          </div>
-                          <div className="col-span-2 text-amber-600">
-                            Sublease Reason: {listing.subleaseReason}
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button className="w-full" asChild>
-                          <Link href={`/listings/${listing.id}`}>
-                            View Details
-                          </Link>
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-              </div>
-            </TabsContent>
-            <TabsContent value="not_sublease" className="space-y-4 pt-4">
-              <div className="grid gap-6 md:grid-cols-2">
-                {filteredListings
-                  .filter((listing) => !listing.isSublease)
-                  .map((listing) => (
-                    <Card key={listing.id} className="overflow-hidden">
-                      <div className="aspect-video w-full bg-muted">
-                        {/* Image would go here */}
-                        <div className="flex h-full items-center justify-center">
-                          <Building className="h-12 w-12 text-muted-foreground" />
-                        </div>
-                      </div>
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle>{listing.title}</CardTitle>
-                            <CardDescription className="flex items-center">
-                              <MapPin className="mr-1 h-3 w-3" />
-                              {listing.location}
-                            </CardDescription>
-                          </div>
-                          <Button variant="ghost" size="icon">
-                            <Heart className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm line-clamp-2">{listing.description}</p>
-                        <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                          <div className="flex items-center">
-                            <DollarSign className="mr-1 h-4 w-4" />
-                            <span>${listing.rentPrice}/month</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Calendar className="mr-1 h-4 w-4" />
-                            <span>{listing.leaseDuration} months</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Building className="mr-1 h-4 w-4" />
-                            <span>{listing.propertyType}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button className="w-full" asChild>
-                          <Link href={`/listings/${listing.id}`}>
-                            View Details
-                          </Link>
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+                  )}
+                </div>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle>{listing.title}</CardTitle>
+                      <CardDescription className="flex items-center">
+                        <MapPin className="mr-1 h-3 w-3" />
+                        {listing.location}
+                      </CardDescription>
+                    </div>
+                    <Button variant="ghost" size="icon">
+                      <Heart className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm line-clamp-2">{listing.description}</p>
+                  <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center">
+                      <DollarSign className="mr-1 h-4 w-4" />
+                      <span>${listing.rentPrice}/month</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Calendar className="mr-1 h-4 w-4" />
+                      <span>{listing.leaseDuration} months</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Building className="mr-1 h-4 w-4" />
+                      <span>{listing.propertyType}</span>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button className="w-full" asChild>
+                    <Link href={`/listings/${listing.listing_id}`}>
+                      View Details
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
 
           {filteredListings.length === 0 && (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
