@@ -53,6 +53,19 @@ export default function CreateListingPage() {
   });
 
   const handleChange = (field: keyof FormData, value: any) => {
+    if (field === "availTimeStart" && value) {
+      // If setting availTimeStart, ensure availTimeEnd is after it
+      if (formData.availTimeEnd && value >= formData.availTimeEnd) {
+        toast.error("Available end date must be after start date");
+        return;
+      }
+    } else if (field === "availTimeEnd" && value) {
+      // If setting availTimeEnd, ensure it's after availTimeStart
+      if (formData.availTimeStart && value <= formData.availTimeStart) {
+        toast.error("Available end date must be after start date");
+        return;
+      }
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -201,6 +214,12 @@ export default function CreateListingPage() {
                           selected={formData.availTimeStart}
                           onSelect={(date: Date | undefined) => date && handleChange("availTimeStart", date)}
                           initialFocus
+                          disabled={(date) => {
+                            if (formData.availTimeEnd) {
+                              return date >= formData.availTimeEnd;
+                            }
+                            return false;
+                          }}
                         />
                       </PopoverContent>
                     </Popover>
@@ -231,6 +250,12 @@ export default function CreateListingPage() {
                           selected={formData.availTimeEnd}
                           onSelect={(date: Date | undefined) => date && handleChange("availTimeEnd", date)}
                           initialFocus
+                          disabled={(date) => {
+                            if (formData.availTimeStart) {
+                              return date <= formData.availTimeStart;
+                            }
+                            return false;
+                          }}
                         />
                       </PopoverContent>
                     </Popover>
