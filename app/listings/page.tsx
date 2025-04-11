@@ -22,6 +22,7 @@ export default function ListingsPage() {
     maxPrice: "",
     leaseDuration: "all",
     listingType: "all",
+    isSublease: "all",
   });
 
   useEffect(() => {
@@ -60,12 +61,17 @@ export default function ListingsPage() {
       filters.leaseDuration === "all" ||
       listing.leaseDuration.toString() === filters.leaseDuration;
 
+    const matchesSublease = filters.isSublease === "all" ||
+      (filters.isSublease === "sublease" && listing.subleaseReason) ||
+      (filters.isSublease === "regular" && !listing.subleaseReason);
+
     return (
       matchesSearch &&
       matchesPropertyType &&
       matchesMinPrice &&
       matchesMaxPrice &&
-      matchesLeaseDuration
+      matchesLeaseDuration &&
+      matchesSublease
     );
   });
 
@@ -186,6 +192,25 @@ export default function ListingsPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="listingType">Listing Type</Label>
+                <Select
+                  value={filters.isSublease}
+                  onValueChange={(value) =>
+                    setFilters({ ...filters, isSublease: value })
+                  }
+                >
+                  <SelectTrigger id="listingType">
+                    <SelectValue placeholder="Select listing type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="regular">Regular Listings</SelectItem>
+                    <SelectItem value="sublease">Subleases</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
             <CardFooter>
               <Button
@@ -198,6 +223,7 @@ export default function ListingsPage() {
                     maxPrice: "",
                     leaseDuration: "all",
                     listingType: "all",
+                    isSublease: "all",
                   })
                 }
               >

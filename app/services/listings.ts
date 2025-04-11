@@ -31,6 +31,7 @@ export interface Listing {
   availTimeStart: string
   availTimeEnd: string
   image: string
+  subleaseReason?: string
 }
 
 export interface CreateListingRequest {
