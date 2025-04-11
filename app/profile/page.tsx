@@ -10,17 +10,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Settings, Key, Camera } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/app/context/AuthContext";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
-  // Mock user data - would be fetched from API
-  const [user, setUser] = useState({
-    username: "johndoe",
-    email: "john@example.com",
-    phoneNumber: "+1 (555) 123-4567",
-    profilePicture: "/avatars/01.png",
-    bio: "Student at University of Example. Looking for housing near campus.",
-  });
-
+  const { user } = useAuth();
   const [preferences, setPreferences] = useState({
     gender: "Male",
     cleanlinessLevel: "Moderate",
@@ -31,7 +26,13 @@ export default function ProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingPreferences, setIsEditingPreferences] = useState(false);
-  const [formData, setFormData] = useState({ ...user });
+  const [formData, setFormData] = useState({
+    username: user?.username ?? "",
+    email: user?.email ?? "",
+    phoneNumber: user?.phoneNumber ?? "",
+    profilePicture: user?.profilePicture ?? "",
+    bio: "Student at University of Example. Looking for housing near campus.",
+  });
   const [preferencesFormData, setPreferencesFormData] = useState({ ...preferences });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -45,7 +46,8 @@ export default function ProfilePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setUser(formData);
+    // Here you would typically update the user profile through an API
+    toast.success("Profile updated successfully!");
     setIsEditing(false);
   };
 
@@ -54,6 +56,16 @@ export default function ProfilePage() {
     setPreferences(preferencesFormData);
     setIsEditingPreferences(false);
   };
+
+  if (!user) {
+    return (
+      <div className="container mx-auto max-w-6xl px-4 py-8">
+        <div className="flex items-center justify-center">
+          <p className="text-lg">Please log in to view your profile.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
@@ -64,7 +76,7 @@ export default function ProfilePage() {
             <CardHeader className="flex flex-col items-center space-y-4">
               <div className="relative">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={user.profilePicture} alt={user.username} />
+                  <AvatarImage src={user.profilePicture || "/avatars/default.png"} alt={user.username} />
                   <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <Button
@@ -88,7 +100,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex items-center">
                   <span className="font-medium">Member since:</span>
-                  <span className="ml-2">January 2023</span>
+                  <span className="ml-2">2023</span>
                 </div>
               </div>
             </CardContent>
@@ -98,51 +110,47 @@ export default function ProfilePage() {
               </Button>
             </CardFooter>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Account</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start">
-                <User className="mr-2 h-4 w-4" />
-                Profile Settings
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Settings className="mr-2 h-4 w-4" />
-                Preferences
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Key className="mr-2 h-4 w-4" />
-                Security
-              </Button>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Main Content */}
-        <div className="space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Update your profile information and how others see you on the platform.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isEditing ? (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid gap-4">
-                    <div className="grid gap-2">
+        <div className="space-y-6">
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="profile">
+                <User className="mr-2 h-4 w-4" />
+                Profile
+              </TabsTrigger>
+              <TabsTrigger value="preferences">
+                <Settings className="mr-2 h-4 w-4" />
+                Preferences
+              </TabsTrigger>
+              <TabsTrigger value="security">
+                <Key className="mr-2 h-4 w-4" />
+                Security
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="profile" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Profile Information</CardTitle>
+                  <CardDescription>
+                    Update your profile information and how others see you on the platform.
+                  </CardDescription>
+                </CardHeader>
+                <form onSubmit={handleSubmit}>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
                       <Label htmlFor="username">Username</Label>
                       <Input
                         id="username"
                         name="username"
                         value={formData.username}
                         onChange={handleChange}
+                        disabled={!isEditing}
                       />
                     </div>
-                    <div className="grid gap-2">
+                    <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
                       <Input
                         id="email"
@@ -150,219 +158,187 @@ export default function ProfilePage() {
                         type="email"
                         value={formData.email}
                         onChange={handleChange}
+                        disabled={!isEditing}
                       />
                     </div>
-                    <div className="grid gap-2">
+                    <div className="space-y-2">
                       <Label htmlFor="phoneNumber">Phone Number</Label>
                       <Input
                         id="phoneNumber"
                         name="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={handleChange}
+                        disabled={!isEditing}
                       />
                     </div>
-                    <div className="grid gap-2">
+                    <div className="space-y-2">
                       <Label htmlFor="bio">Bio</Label>
                       <Textarea
                         id="bio"
                         name="bio"
                         value={formData.bio}
                         onChange={handleChange}
-                        rows={4}
+                        disabled={!isEditing}
                       />
                     </div>
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsEditing(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit">Save Changes</Button>
-                  </div>
-                </form>
-              ) : (
-                <div className="space-y-4">
-                  <div className="grid gap-1">
-                    <div className="text-sm font-medium">Username</div>
-                    <div className="text-sm text-muted-foreground">{user.username}</div>
-                  </div>
-                  <div className="grid gap-1">
-                    <div className="text-sm font-medium">Email</div>
-                    <div className="text-sm text-muted-foreground">{user.email}</div>
-                  </div>
-                  <div className="grid gap-1">
-                    <div className="text-sm font-medium">Phone Number</div>
-                    <div className="text-sm text-muted-foreground">
-                      {user.phoneNumber || "Not provided"}
-                    </div>
-                  </div>
-                  <div className="grid gap-1">
-                    <div className="text-sm font-medium">Bio</div>
-                    <div className="text-sm text-muted-foreground">{user.bio}</div>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Roommate Profile</CardTitle>
-              <CardDescription>
-                Manage your roommate preferences and profile.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="preferences">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="preferences">Preferences</TabsTrigger>
-                  <TabsTrigger value="availability">Availability</TabsTrigger>
-                  <TabsTrigger value="reviews">Reviews</TabsTrigger>
-                </TabsList>
-                <TabsContent value="preferences" className="space-y-4 pt-4">
-                  {isEditingPreferences ? (
-                    <form onSubmit={handlePreferencesSubmit} className="space-y-4">
-                      <div className="grid gap-4">
-                        <div className="grid gap-2">
-                          <Label>Gender</Label>
-                          <Select
-                            value={preferencesFormData.gender}
-                            onValueChange={(value) => handlePreferencesChange("gender", value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select gender" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Male">Male</SelectItem>
-                              <SelectItem value="Female">Female</SelectItem>
-                              <SelectItem value="Other">Other</SelectItem>
-                              <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Cleanliness Level</Label>
-                          <Select
-                            value={preferencesFormData.cleanlinessLevel}
-                            onValueChange={(value) => handlePreferencesChange("cleanlinessLevel", value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select cleanliness level" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Very Clean">Very Clean</SelectItem>
-                              <SelectItem value="Clean">Clean</SelectItem>
-                              <SelectItem value="Moderate">Moderate</SelectItem>
-                              <SelectItem value="Relaxed">Relaxed</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Age</Label>
-                          <Input
-                            type="number"
-                            value={preferencesFormData.age}
-                            onChange={(e) => handlePreferencesChange("age", e.target.value)}
-                            min="18"
-                            max="100"
-                          />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Pets</Label>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id="pets"
-                              checked={preferencesFormData.pets}
-                              onChange={(e) => handlePreferencesChange("pets", e.target.checked)}
-                              className="h-4 w-4 rounded border-gray-300"
-                            />
-                            <Label htmlFor="pets">Has pets or allows pets</Label>
-                          </div>
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Smoking</Label>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id="smoking"
-                              checked={preferencesFormData.smokingHabits}
-                              onChange={(e) => handlePreferencesChange("smokingHabits", e.target.checked)}
-                              className="h-4 w-4 rounded border-gray-300"
-                            />
-                            <Label htmlFor="smoking">Smoker</Label>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-end space-x-2">
+                  </CardContent>
+                  <CardFooter className="flex justify-end space-x-2">
+                    {isEditing ? (
+                      <>
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => setIsEditingPreferences(false)}
+                          onClick={() => {
+                            setIsEditing(false);
+                            setFormData({
+                              username: user.username,
+                              email: user.email,
+                              phoneNumber: user.phoneNumber,
+                              profilePicture: user.profilePicture,
+                              bio: formData.bio,
+                            });
+                          }}
                         >
                           Cancel
                         </Button>
                         <Button type="submit">Save Changes</Button>
-                      </div>
-                    </form>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="grid gap-4">
-                        <div className="grid gap-2">
-                          <Label>Gender</Label>
-                          <div className="text-sm text-muted-foreground">{preferences.gender}</div>
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Cleanliness Level</Label>
-                          <div className="text-sm text-muted-foreground">{preferences.cleanlinessLevel}</div>
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Age</Label>
-                          <div className="text-sm text-muted-foreground">{preferences.age}</div>
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Pets</Label>
-                          <div className="text-sm text-muted-foreground">
-                            {preferences.pets ? "Has pets/Pet friendly" : "No pets"}
-                          </div>
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Smoking</Label>
-                          <div className="text-sm text-muted-foreground">
-                            {preferences.smokingHabits ? "Smoker" : "Non-smoker"}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-end">
-                        <Button variant="outline" onClick={() => setIsEditingPreferences(true)}>
-                          Edit Preferences
-                        </Button>
-                      </div>
+                      </>
+                    ) : (
+                      <Button type="button" onClick={() => setIsEditing(true)}>
+                        Edit Profile
+                      </Button>
+                    )}
+                  </CardFooter>
+                </form>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="preferences" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Roommate Preferences</CardTitle>
+                  <CardDescription>
+                    Set your preferences for finding compatible roommates.
+                  </CardDescription>
+                </CardHeader>
+                <form onSubmit={handlePreferencesSubmit}>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="gender">Gender</Label>
+                      <Select
+                        value={preferencesFormData.gender}
+                        onValueChange={(value) => handlePreferencesChange("gender", value)}
+                        disabled={!isEditingPreferences}
+                      >
+                        <SelectTrigger id="gender">
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Male">Male</SelectItem>
+                          <SelectItem value="Female">Female</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  )}
-                </TabsContent>
-                <TabsContent value="availability" className="space-y-4 pt-4">
-                  <div className="text-center text-muted-foreground">
-                    No availability information set.
+                    <div className="space-y-2">
+                      <Label htmlFor="cleanlinessLevel">Cleanliness Level</Label>
+                      <Select
+                        value={preferencesFormData.cleanlinessLevel}
+                        onValueChange={(value) => handlePreferencesChange("cleanlinessLevel", value)}
+                        disabled={!isEditingPreferences}
+                      >
+                        <SelectTrigger id="cleanlinessLevel">
+                          <SelectValue placeholder="Select cleanliness level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Very Clean">Very Clean</SelectItem>
+                          <SelectItem value="Moderate">Moderate</SelectItem>
+                          <SelectItem value="Relaxed">Relaxed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="age">Age</Label>
+                      <Input
+                        id="age"
+                        type="number"
+                        value={preferencesFormData.age}
+                        onChange={(e) => handlePreferencesChange("age", e.target.value)}
+                        disabled={!isEditingPreferences}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="pets"
+                        checked={preferencesFormData.pets}
+                        onCheckedChange={(checked) => handlePreferencesChange("pets", checked)}
+                        disabled={!isEditingPreferences}
+                      />
+                      <Label htmlFor="pets">Pets Allowed</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="smokingHabits"
+                        checked={preferencesFormData.smokingHabits}
+                        onCheckedChange={(checked) => handlePreferencesChange("smokingHabits", checked)}
+                        disabled={!isEditingPreferences}
+                      />
+                      <Label htmlFor="smokingHabits">Smoking Allowed</Label>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex justify-end space-x-2">
+                    {isEditingPreferences ? (
+                      <>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setIsEditingPreferences(false);
+                            setPreferencesFormData({ ...preferences });
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit">Save Changes</Button>
+                      </>
+                    ) : (
+                      <Button type="button" onClick={() => setIsEditingPreferences(true)}>
+                        Edit Preferences
+                      </Button>
+                    )}
+                  </CardFooter>
+                </form>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="security" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Security Settings</CardTitle>
+                  <CardDescription>
+                    Manage your account security settings.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input id="currentPassword" type="password" />
                   </div>
-                  <div className="flex justify-end">
-                    <Button variant="outline">Set Availability</Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input id="newPassword" type="password" />
                   </div>
-                </TabsContent>
-                <TabsContent value="reviews" className="space-y-4 pt-4">
-                  <div className="text-center text-muted-foreground">
-                    No reviews yet.
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Input id="confirmPassword" type="password" />
                   </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+                </CardContent>
+                <CardFooter>
+                  <Button>Update Password</Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
