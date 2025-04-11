@@ -1,8 +1,24 @@
 # Getting Started
-Copy `application-template.properties` to `application.properties` and fill in your DB credentials before running
 
+Before running the project, make sure to create a `src/main/resources/application.properties` file with the following content:
+
+```properties
+spring.datasource.url=${SPRING_DATASOURCE_URL}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 ### Reference Documentation
 For further reference, please consider the following sections:
+```
+
+For local development:
+```properties
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/your_db
+SPRING_DATASOURCE_USERNAME=your_username
+SPRING_DATASOURCE_PASSWORD=your_password
+```
 
 * [Official Apache Maven documentation](https://maven.apache.org/guides/index.html)
 * [Spring Boot Maven Plugin Reference Guide](https://docs.spring.io/spring-boot/3.4.4/maven-plugin)
