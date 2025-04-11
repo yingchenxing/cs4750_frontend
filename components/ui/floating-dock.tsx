@@ -73,25 +73,7 @@ export const FloatingDock = ({
                 Profile
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/saved" className="flex items-center">
-                <Bookmark className="mr-2 h-4 w-4" />
-                Saved Listings
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/notifications" className="flex items-center">
-                <Bell className="mr-2 h-4 w-4" />
-                Notifications
-              </Link>
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/settings" className="flex items-center">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </Link>
-            </DropdownMenuItem>
             <DropdownMenuItem>
               <button onClick={logout} className="flex items-center text-destructive w-full">
                 <LogOut className="mr-2 h-4 w-4" />
