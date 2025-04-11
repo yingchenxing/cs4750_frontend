@@ -79,23 +79,8 @@ Response:
 #### Get All Listings
 
 ```http
-GET /listings
+GET /api/listings
 ```
-
-[//]: # (Query parameters:)
-
-[//]: # ()
-[//]: # (- `page` &#40;optional&#41;: Page number for pagination)
-
-[//]: # (- `limit` &#40;optional&#41;: Number of items per page)
-
-[//]: # (- `university` &#40;optional&#41;: Filter by university)
-
-[//]: # (- `priceMin` &#40;optional&#41;: Minimum price)
-
-[//]: # (- `priceMax` &#40;optional&#41;: Maximum price)
-
-[//]: # (- `type` &#40;optional&#41;: Housing type &#40;apartment, house, dorm&#41;)
 
 Response:
 
@@ -108,7 +93,6 @@ Response:
       "username": "string",
       "email": "string",
       "phoneNumber": "string",
-      "passwordHash": "string",
       "profilePicture": "string"
     },
     "title": "string",
@@ -123,59 +107,6 @@ Response:
   }
 ]
 ```
-
-[//]: # (#### Get Listing by ID)
-
-[//]: # ()
-[//]: # (```http)
-
-[//]: # (GET /listings/:id)
-
-[//]: # (```)
-
-[//]: # ()
-[//]: # (Response:)
-
-[//]: # ()
-[//]: # (```json)
-
-[//]: # ({)
-
-[//]: # (  "id": "string",)
-
-[//]: # (  "title": "string",)
-
-[//]: # (  "description": "string",)
-
-[//]: # (  "price": "number",)
-
-[//]: # (  "location": {)
-
-[//]: # (    "address": "string",)
-
-[//]: # (    "city": "string",)
-
-[//]: # (    "state": "string",)
-
-[//]: # (    "zipCode": "string")
-
-[//]: # (  },)
-
-[//]: # (  "university": "string",)
-
-[//]: # (  "type": "string",)
-
-[//]: # (  "amenities": ["string"],)
-
-[//]: # (  "images": ["string"],)
-
-[//]: # (  "createdAt": "string",)
-
-[//]: # (  "updatedAt": "string")
-
-[//]: # (})
-
-[//]: # (```)
 
 #### Create Listing
 
@@ -198,41 +129,58 @@ Request body:
   "availTimeEnd": "string",
   "image": "string",
   "isSublease": "boolean",
-  "subleaseReason": "string"
+  "subleaseReason": "string (required if isSublease is true)"
 }
 ```
 
-e.g.
+Example request:
+
 ```json
 {
-"userId": 1,
-"title": "Summer Sublet Room",
-"description": "Subletting my room near campus for the summer.",
-"location": "123 University Ave",
-"propertyType": "Apartment",
-"rentPrice": 900,
-"leaseDuration": 3,
-"availTimeStart": "2025-06-01",
-"availTimeEnd": "2025-09-01",
-"image": "https://i.imgur.com/Dt145tX.jpeg",
-"isSublease": true,
-"subleaseReason": "Going abroad for internship"
+  "userId": 1,
+  "title": "Summer Sublet Room",
+  "description": "Subletting my room near campus for the summer.",
+  "location": "123 University Ave",
+  "propertyType": "Apartment",
+  "rentPrice": 900,
+  "leaseDuration": 3,
+  "availTimeStart": "2025-06-01",
+  "availTimeEnd": "2025-09-01",
+  "image": "https://i.imgur.com/Dt145tX.jpeg",
+  "isSublease": true,
+  "subleaseReason": "Going abroad for internship"
 }
 ```
-
 
 Response:
 
 ```json
 {
-"image": "String",
-"listing_id": "number",
-"rent_price": "number",
-"lease_duration": "number",
-"description": "String",
-"property_type": "String",
-"location": "String",
-"title": "String"
+  "listing_id": "number",
+  "title": "string",
+  "description": "string",
+  "propertyType": "string",
+  "location": "string",
+  "rentPrice": "number",
+  "leaseDuration": "number",
+  "availTimeStart": "string",
+  "availTimeEnd": "string",
+  "image": "string"
+}
+```
+
+#### Save Listing
+
+```http
+POST /api/listings/{listingId}/save
+```
+
+Response (200 OK):
+
+```json
+{
+  "savedId": "number",
+  "savedAt": "string (ISO-8601 datetime)"
 }
 ```
 
