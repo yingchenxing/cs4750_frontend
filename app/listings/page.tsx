@@ -278,6 +278,12 @@ export default function ListingsPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm line-clamp-2">{listing.description}</p>
+                  {listing.subleaseReason && (
+                    <div className="mt-2 flex items-center text-sm text-muted-foreground">
+                      <span className="font-medium">Sublease Reason: </span>
+                      <span className="ml-1">{listing.subleaseReason}</span>
+                    </div>
+                  )}
                   <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
                     <div className="flex items-center">
                       <DollarSign className="mr-1 h-4 w-4" />
