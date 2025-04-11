@@ -35,312 +35,264 @@ export default function ProfilePage() {
   });
   const [preferencesFormData, setPreferencesFormData] = useState({ ...preferences });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handlePreferencesChange = (name: string, value: string | boolean) => {
-    setPreferencesFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically update the user profile through an API
-    toast.success("Profile updated successfully!");
+    // Here you would typically make an API call to update the user's profile
     setIsEditing(false);
+    toast.success("Profile updated successfully!");
   };
 
   const handlePreferencesSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPreferences(preferencesFormData);
     setIsEditingPreferences(false);
+    toast.success("Preferences updated successfully!");
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handlePreferencesChange = (name: string, value: string | boolean) => {
+    setPreferencesFormData(prev => ({ ...prev, [name]: value }));
   };
 
   if (!user) {
     return (
-      <div className="container mx-auto max-w-6xl px-4 py-8">
-        <div className="flex items-center justify-center">
-          <p className="text-lg">Please log in to view your profile.</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Please Log In</CardTitle>
+            <CardDescription>You need to be logged in to view your profile.</CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button className="w-full" onClick={() => window.location.href = '/login'}>
+              Go to Login
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-8">
-      <div className="grid gap-8 md:grid-cols-[300px_1fr]">
-        {/* Profile Sidebar */}
-        <div className="space-y-6">
+    <div className="container mx-auto px-4 py-8">
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="preferences">Preferences</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profile">
           <Card>
-            <CardHeader className="flex flex-col items-center space-y-4">
-              <div className="relative">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={user.profilePicture || "/avatars/default.png"} alt={user.username} />
-                  <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+            <CardHeader>
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={formData.profilePicture || "/default-avatar.png"} alt={formData.username} />
+                  <AvatarFallback>{formData.username.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
-                >
-                  <Camera className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="text-center">
-                <CardTitle className="text-xl">{user.username}</CardTitle>
-                <CardDescription>{user.email}</CardDescription>
+                <div>
+                  <CardTitle>{formData.username}</CardTitle>
+                  <CardDescription>{formData.email}</CardDescription>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center">
-                  <span className="font-medium">Phone:</span>
-                  <span className="ml-2">{user.phoneNumber || "Not provided"}</span>
+              {isEditing ? (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phoneNumber">Phone Number</Label>
+                    <Input
+                      id="phoneNumber"
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bio">Bio</Label>
+                    <Textarea
+                      id="bio"
+                      name="bio"
+                      value={formData.bio}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">Save Changes</Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <Label>Username</Label>
+                    <p className="text-sm text-muted-foreground">{formData.username}</p>
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <p className="text-sm text-muted-foreground">{formData.email}</p>
+                  </div>
+                  <div>
+                    <Label>Phone Number</Label>
+                    <p className="text-sm text-muted-foreground">{formData.phoneNumber}</p>
+                  </div>
+                  <div>
+                    <Label>Bio</Label>
+                    <p className="text-sm text-muted-foreground">{formData.bio}</p>
+                  </div>
+                  <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
                 </div>
-                <div className="flex items-center">
-                  <span className="font-medium">Member since:</span>
-                  <span className="ml-2">2023</span>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="preferences">
+          <Card>
+            <CardHeader>
+              <CardTitle>Housing Preferences</CardTitle>
+              <CardDescription>Set your preferences for finding the perfect housing match.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isEditingPreferences ? (
+                <form onSubmit={handlePreferencesSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Gender</Label>
+                    <Select
+                      value={preferencesFormData.gender}
+                      onValueChange={(value) => handlePreferencesChange("gender", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Cleanliness Level</Label>
+                    <Select
+                      value={preferencesFormData.cleanlinessLevel}
+                      onValueChange={(value) => handlePreferencesChange("cleanlinessLevel", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select cleanliness level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Very Clean">Very Clean</SelectItem>
+                        <SelectItem value="Moderate">Moderate</SelectItem>
+                        <SelectItem value="Relaxed">Relaxed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Age</Label>
+                    <Input
+                      type="number"
+                      value={preferencesFormData.age}
+                      onChange={(e) => handlePreferencesChange("age", e.target.value)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label>Pets</Label>
+                    <Switch
+                      checked={preferencesFormData.pets}
+                      onCheckedChange={(checked) => handlePreferencesChange("pets", checked)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label>Smoking Habits</Label>
+                    <Switch
+                      checked={preferencesFormData.smokingHabits}
+                      onCheckedChange={(checked) => handlePreferencesChange("smokingHabits", checked)}
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button type="button" variant="outline" onClick={() => setIsEditingPreferences(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">Save Preferences</Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <Label>Gender</Label>
+                    <p className="text-sm text-muted-foreground">{preferences.gender}</p>
+                  </div>
+                  <div>
+                    <Label>Cleanliness Level</Label>
+                    <p className="text-sm text-muted-foreground">{preferences.cleanlinessLevel}</p>
+                  </div>
+                  <div>
+                    <Label>Age</Label>
+                    <p className="text-sm text-muted-foreground">{preferences.age}</p>
+                  </div>
+                  <div>
+                    <Label>Pets</Label>
+                    <p className="text-sm text-muted-foreground">{preferences.pets ? "Yes" : "No"}</p>
+                  </div>
+                  <div>
+                    <Label>Smoking Habits</Label>
+                    <p className="text-sm text-muted-foreground">{preferences.smokingHabits ? "Yes" : "No"}</p>
+                  </div>
+                  <Button onClick={() => setIsEditingPreferences(true)}>Edit Preferences</Button>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security">
+          <Card>
+            <CardHeader>
+              <CardTitle>Security Settings</CardTitle>
+              <CardDescription>Manage your account security settings.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Change Password</Label>
+                <Button variant="outline" className="w-full">
+                  Update Password
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <Label>Two-Factor Authentication</Label>
+                <Button variant="outline" className="w-full">
+                  Enable 2FA
+                </Button>
               </div>
             </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="w-full">
-                View Public Profile
-              </Button>
-            </CardFooter>
           </Card>
-        </div>
-
-        {/* Main Content */}
-        <div className="space-y-6">
-          <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="profile">
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </TabsTrigger>
-              <TabsTrigger value="preferences">
-                <Settings className="mr-2 h-4 w-4" />
-                Preferences
-              </TabsTrigger>
-              <TabsTrigger value="security">
-                <Key className="mr-2 h-4 w-4" />
-                Security
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="profile" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>
-                    Update your profile information and how others see you on the platform.
-                  </CardDescription>
-                </CardHeader>
-                <form onSubmit={handleSubmit}>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="username">Username</Label>
-                      <Input
-                        id="username"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phoneNumber">Phone Number</Label>
-                      <Input
-                        id="phoneNumber"
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="bio">Bio</Label>
-                      <Textarea
-                        id="bio"
-                        name="bio"
-                        value={formData.bio}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                      />
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-end space-x-2">
-                    {isEditing ? (
-                      <>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setIsEditing(false);
-                            setFormData({
-                              username: user.username,
-                              email: user.email,
-                              phoneNumber: user.phoneNumber,
-                              profilePicture: user.profilePicture,
-                              bio: formData.bio,
-                            });
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit">Save Changes</Button>
-                      </>
-                    ) : (
-                      <Button type="button" onClick={() => setIsEditing(true)}>
-                        Edit Profile
-                      </Button>
-                    )}
-                  </CardFooter>
-                </form>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="preferences" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Roommate Preferences</CardTitle>
-                  <CardDescription>
-                    Set your preferences for finding compatible roommates.
-                  </CardDescription>
-                </CardHeader>
-                <form onSubmit={handlePreferencesSubmit}>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="gender">Gender</Label>
-                      <Select
-                        value={preferencesFormData.gender}
-                        onValueChange={(value) => handlePreferencesChange("gender", value)}
-                        disabled={!isEditingPreferences}
-                      >
-                        <SelectTrigger id="gender">
-                          <SelectValue placeholder="Select gender" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Male">Male</SelectItem>
-                          <SelectItem value="Female">Female</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cleanlinessLevel">Cleanliness Level</Label>
-                      <Select
-                        value={preferencesFormData.cleanlinessLevel}
-                        onValueChange={(value) => handlePreferencesChange("cleanlinessLevel", value)}
-                        disabled={!isEditingPreferences}
-                      >
-                        <SelectTrigger id="cleanlinessLevel">
-                          <SelectValue placeholder="Select cleanliness level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Very Clean">Very Clean</SelectItem>
-                          <SelectItem value="Moderate">Moderate</SelectItem>
-                          <SelectItem value="Relaxed">Relaxed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="age">Age</Label>
-                      <Input
-                        id="age"
-                        type="number"
-                        value={preferencesFormData.age}
-                        onChange={(e) => handlePreferencesChange("age", e.target.value)}
-                        disabled={!isEditingPreferences}
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="pets"
-                        checked={preferencesFormData.pets}
-                        onCheckedChange={(checked) => handlePreferencesChange("pets", checked)}
-                        disabled={!isEditingPreferences}
-                      />
-                      <Label htmlFor="pets">Pets Allowed</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="smokingHabits"
-                        checked={preferencesFormData.smokingHabits}
-                        onCheckedChange={(checked) => handlePreferencesChange("smokingHabits", checked)}
-                        disabled={!isEditingPreferences}
-                      />
-                      <Label htmlFor="smokingHabits">Smoking Allowed</Label>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-end space-x-2">
-                    {isEditingPreferences ? (
-                      <>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setIsEditingPreferences(false);
-                            setPreferencesFormData({ ...preferences });
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit">Save Changes</Button>
-                      </>
-                    ) : (
-                      <Button type="button" onClick={() => setIsEditingPreferences(true)}>
-                        Edit Preferences
-                      </Button>
-                    )}
-                  </CardFooter>
-                </form>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="security" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Security Settings</CardTitle>
-                  <CardDescription>
-                    Manage your account security settings.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Current Password</Label>
-                    <Input id="currentPassword" type="password" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <Input id="newPassword" type="password" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input id="confirmPassword" type="password" />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button>Update Password</Button>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 
