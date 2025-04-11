@@ -16,6 +16,9 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Upload } from "lucide-react";
 import Image from "next/image";
+import { useAuth } from "@/app/context/AuthContext";
+import { createListing, CreateListingRequest } from "@/app/services/listings";
+import { toast } from "sonner";
 
 interface FormData {
   title: string;
@@ -28,11 +31,12 @@ interface FormData {
   availTimeEnd: Date | undefined;
   isSublease: boolean;
   subleaseReason: string;
-  images: string[];
+  image: string;
 }
 
 export default function CreateListingPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -45,39 +49,45 @@ export default function CreateListingPage() {
     availTimeEnd: new Date(),
     isSublease: false,
     subleaseReason: "",
-    images: [],
+    image: "",
   });
 
   const handleChange = (field: keyof FormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newImages = Array.from(e.target.files);
-      setFormData((prev) => ({
-        ...prev,
-        images: [...prev.images, ...newImages.map((file) => URL.createObjectURL(file))],
-      }));
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
+    if (!user) {
+      toast.error("You must be logged in to create a listing");
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Here you would typically upload images to a storage service
-      // and then create the listing with the image URLs
-      console.log("Form data:", formData);
+      const requestData: CreateListingRequest = {
+        userId: user.userId,
+        title: formData.title,
+        description: formData.description,
+        propertyType: formData.propertyType,
+        location: formData.location,
+        rentPrice: parseFloat(formData.rentPrice),
+        leaseDuration: parseInt(formData.leaseDuration),
+        availTimeStart: formData.availTimeStart?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+        availTimeEnd: formData.availTimeEnd?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+        image: formData.image,
+        isSublease: formData.isSublease,
+        subleaseReason: formData.isSublease ? formData.subleaseReason : undefined,
+      };
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Redirect to the listings page
+      await createListing(requestData);
+      toast.success("Listing created successfully!");
       router.push("/listings");
     } catch (error) {
       console.error("Error creating listing:", error);
+      toast.error("Failed to create listing. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -268,7 +278,7 @@ export default function CreateListingPage() {
                       placeholder="Why are you subleasing this property?"
                       value={formData.subleaseReason}
                       onChange={(e) => handleChange("subleaseReason", e.target.value)}
-                      required
+                      required={formData.isSublease}
                     />
                   </div>
                 )}
@@ -276,56 +286,14 @@ export default function CreateListingPage() {
 
               <TabsContent value="images" className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Property Images</Label>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {formData.images.map((image, index) => (
-                      <div
-                        key={index}
-                        className="relative aspect-video overflow-hidden rounded-lg border bg-muted"
-                      >
-                        <div className="relative aspect-video">
-                          <Image
-                            src={image}
-                            alt={`Property image ${index + 1}`}
-                            fill
-                            className="object-cover rounded-lg"
-                          />
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute right-2 top-2"
-                          onClick={() =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              images: prev.images.filter((_, i) => i !== index),
-                            }))
-                          }
-                        >
-                          ×
-                        </Button>
-                      </div>
-                    ))}
-                    <label
-                      htmlFor="images"
-                      className="flex aspect-video cursor-pointer items-center justify-center rounded-lg border border-dashed bg-muted hover:bg-muted/80"
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <Upload className="h-8 w-8 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          Upload Image
-                        </span>
-                      </div>
-                      <input
-                        id="images"
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        onChange={handleImageUpload}
-                      />
-                    </label>
-                  </div>
+                  <Label>Property Image URL</Label>
+                  <Input
+                    type="url"
+                    placeholder="Enter image URL"
+                    value={formData.image}
+                    onChange={(e) => handleChange("image", e.target.value)}
+                    required
+                  />
                 </div>
               </TabsContent>
             </Tabs>

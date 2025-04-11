@@ -33,12 +33,39 @@ export interface Listing {
   image: string
 }
 
+export interface CreateListingRequest {
+  userId: number
+  title: string
+  description: string
+  location: string
+  propertyType: string
+  rentPrice: number
+  leaseDuration: number
+  availTimeStart: string
+  availTimeEnd: string
+  image: string
+  isSublease: boolean
+  subleaseReason?: string
+}
+
 export const getListings = async (): Promise<Listing[]> => {
   try {
     const response = await api.get<Listing[]>('/api/listings')
     return response.data
   } catch (error) {
     console.error('Error fetching listings:', error)
+    throw error
+  }
+}
+
+export const createListing = async (
+  data: CreateListingRequest
+): Promise<Listing> => {
+  try {
+    const response = await api.post<Listing>('/api/listings/create', data)
+    return response.data
+  } catch (error) {
+    console.error('Error creating listing:', error)
     throw error
   }
 }
