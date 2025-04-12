@@ -1,6 +1,5 @@
 package com.roomsync.app.model.dto;
 
-
 import lombok.Data;
 
 @Data
