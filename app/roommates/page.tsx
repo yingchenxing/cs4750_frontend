@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,6 +60,7 @@ const mockRoommates = [
 ];
 
 export default function RoommatesPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
     gender: "all",
@@ -92,6 +94,10 @@ export default function RoommatesPage() {
       matchesSmoking
     );
   });
+
+  const handleStartChat = (roommateId: number) => {
+    router.push(`/messages?chatWith=${roommateId}`)
+  }
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-10">
@@ -248,9 +254,9 @@ export default function RoommatesPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full">
+                  <Button className="w-full" onClick={() => handleStartChat(roommate.id)}> {/* Assuming roommate.id is the user ID */}
                     <MessageSquare className="mr-2 h-4 w-4" />
-                    Message
+                    Message {roommate.username}
                   </Button>
                 </CardFooter>
               </Card>
