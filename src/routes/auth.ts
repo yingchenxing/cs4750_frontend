@@ -24,9 +24,9 @@ router.post(
       const newUser = await createUser({
         username,
         email,
-        phone_number: phoneNumber,
-        password_hash: password,
-        profile_picture: null,
+        phoneNumber,
+        passwordHash: password,
+        profilePicture: null,
       })
 
       // Return success response
@@ -61,7 +61,7 @@ router.post(
       }
 
       // Verify password
-      const isValidPassword = await verifyPassword(password, user.password_hash)
+      const isValidPassword = await verifyPassword(password, user.passwordHash)
       if (!isValidPassword) {
         res.status(401).json({
           error: 'Unauthorized',
@@ -72,18 +72,18 @@ router.post(
 
       // Generate JWT token
       const token = jwt.sign(
-        { userId: user.user_id },
+        { userId: user.userId },
         process.env.JWT_SECRET || 'your-secret-key',
         { expiresIn: '24h' }
       )
 
       // Return user data and token
       res.status(200).json({
-        userId: user.user_id,
+        userId: user.userId,
         username: user.username,
         email: user.email,
-        phoneNumber: user.phone_number,
-        profilePicture: user.profile_picture,
+        phoneNumber: user.phoneNumber,
+        profilePicture: user.profilePicture,
         token,
       })
     } catch (error) {

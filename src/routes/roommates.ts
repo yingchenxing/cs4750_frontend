@@ -33,19 +33,19 @@ router.get(
 
       const matchesWithUsers = await Promise.all(
         matches.map(async (match) => {
-          const user = await getUserById(match.user_id)
+          const user = await getUserById(match.userId)
           return {
-            id: match.profile_id,
-            userId: match.user_id,
+            id: match.profileId,
+            userId: match.userId,
             firstName: user?.username.split(' ')[0] || '',
             lastName: user?.username.split(' ')[1] || '',
             preferences: {
-              smoking: match.p_smoking_habits,
-              pets: match.p_pets,
-              cleanliness: match.p_cleanliness_level,
+              smoking: match.smokingHabits,
+              pets: match.pets,
+              cleanliness: match.cleanlinessLevel,
             },
             bio: match.bio,
-            profileImage: user?.profile_picture,
+            profileImage: user?.profilePicture,
           }
         })
       )
@@ -85,20 +85,20 @@ router.put(
       if (!profile) {
         // Create new profile if it doesn't exist
         await createRoommateProfile({
-          user_id: Number(userId),
-          p_smoking_habits: smoking,
-          p_pets: pets,
-          p_cleanliness_level: cleanliness,
+          userId: Number(userId),
+          smokingHabits: smoking,
+          pets: pets,
+          cleanlinessLevel: cleanliness,
           bio: additionalNotes,
-          p_gender: null,
-          p_age: null,
+          gender: null,
+          age: null,
         })
       } else {
         // Update existing profile
         await updateRoommateProfile(Number(userId), {
-          p_smoking_habits: smoking,
-          p_pets: pets,
-          p_cleanliness_level: cleanliness,
+          smokingHabits: smoking,
+          pets: pets,
+          cleanlinessLevel: cleanliness,
           bio: additionalNotes,
         })
       }

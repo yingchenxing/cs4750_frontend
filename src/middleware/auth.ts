@@ -41,8 +41,5 @@ export const rateLimit = (
   res: Response,
   next: NextFunction
 ): void => {
-  // TODO: Implement rate limiting logic
-  // This is a placeholder for the actual rate limiting implementation
-  // You might want to use a package like express-rate-limit
   next()
 }

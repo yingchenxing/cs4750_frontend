@@ -31,9 +31,9 @@ router.get(
             participants: user
               ? [
                   {
-                    id: user.user_id,
+                    id: user.userId,
                     username: user.username,
-                    profileImage: user.profile_picture,
+                    profileImage: user.profilePicture,
                   },
                 ]
               : [],
@@ -110,8 +110,8 @@ router.post(
       }
 
       const message = await createMessage({
-        sender_id: Number(userId),
-        receiver_id: Number(conversationId),
+        senderId: Number(userId),
+        receiverId: Number(conversationId),
         content,
       })
 

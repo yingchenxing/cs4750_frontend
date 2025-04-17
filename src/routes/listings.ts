@@ -16,16 +16,26 @@ router.get('/', async (req, res) => {
     const listings = await getAllListings()
     const listingsWithUsers = await Promise.all(
       listings.map(async (listing) => {
-        const user = await getUserById(listing.user_id)
+        const user = await getUserById(listing.userId)
         return {
-          ...listing,
+          listingId: listing.listingId,
+          userId: listing.userId,
+          title: listing.title,
+          description: listing.description,
+          propertyType: listing.propertyType,
+          location: listing.location,
+          rentPrice: listing.rentPrice,
+          leaseDuration: listing.leaseDuration,
+          availTimeStart: listing.availTimeStart,
+          availTimeEnd: listing.availTimeEnd,
+          image: listing.image,
           user: user
             ? {
-                userId: user.user_id,
+                userId: user.userId,
                 username: user.username,
                 email: user.email,
-                phoneNumber: user.phone_number,
-                profilePicture: user.profile_picture,
+                phoneNumber: user.phoneNumber,
+                profilePicture: user.profilePicture,
               }
             : null,
         }
@@ -61,26 +71,41 @@ router.post('/create', async (req, res) => {
 
     // Create base listing
     const listing = await createListing({
-      user_id: userId,
+      userId,
       title,
       description,
-      property_type: propertyType,
+      propertyType,
       location,
-      rent_price: rentPrice,
-      lease_duration: leaseDuration,
-      avail_time_start: new Date(availTimeStart),
-      avail_time_end: new Date(availTimeEnd),
+      rentPrice,
+      leaseDuration,
+      availTimeStart: new Date(availTimeStart),
+      availTimeEnd: new Date(availTimeEnd),
       image,
     })
 
     // Create specific listing type
     if (isSublease) {
-      await createSubleaseListing(listing.listing_id, subleaseReason)
+      await createSubleaseListing(listing.listingId, subleaseReason)
     } else {
-      await createHouseListing(listing.listing_id)
+      await createHouseListing(listing.listingId)
     }
 
-    res.status(201).json(listing)
+    // Transform response to camelCase
+    const response = {
+      listingId: listing.listingId,
+      userId: listing.userId,
+      title: listing.title,
+      description: listing.description,
+      propertyType: listing.propertyType,
+      location: listing.location,
+      rentPrice: listing.rentPrice,
+      leaseDuration: listing.leaseDuration,
+      availTimeStart: listing.availTimeStart,
+      availTimeEnd: listing.availTimeEnd,
+      image: listing.image,
+    }
+
+    res.status(201).json(response)
   } catch (error) {
     console.error('Error creating listing:', error)
     res.status(500).json({

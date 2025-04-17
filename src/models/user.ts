@@ -1,46 +1,53 @@
-import pool from '../config/database'
-import bcrypt from 'bcrypt'
+import { Model, DataTypes } from 'sequelize'
+import sequelize from '../config/database'
 
-export interface User {
-  user_id: number
-  username: string
-  email: string
-  phone_number: string | null
-  password_hash: string
-  profile_picture: string | null
+class User extends Model {
+  public user_id!: number
+  public username!: string
+  public email!: string
+  public phone_number?: string
+  public password_hash!: string
+  public profile_picture?: string
 }
 
-export const createUser = async (
-  user: Omit<User, 'user_id'>
-): Promise<User> => {
-  const { username, email, phone_number, password_hash, profile_picture } = user
-  const hashedPassword = await bcrypt.hash(password_hash, 10)
+User.init(
+  {
+    user_id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    username: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      unique: true,
+    },
+    email: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true,
+      },
+    },
+    phone_number: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    password_hash: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    profile_picture: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+  },
+  {
+    sequelize,
+    modelName: 'User',
+    tableName: 'users',
+  }
+)
 
-  const result = await pool.query(
-    'INSERT INTO users (username, email, phone_number, password_hash, profile_picture) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-    [username, email, phone_number, hashedPassword, profile_picture]
-  )
-
-  return result.rows[0]
-}
-
-export const getUserByEmail = async (email: string): Promise<User | null> => {
-  const result = await pool.query('SELECT * FROM users WHERE email = $1', [
-    email,
-  ])
-  return result.rows[0] || null
-}
-
-export const getUserById = async (userId: number): Promise<User | null> => {
-  const result = await pool.query('SELECT * FROM users WHERE user_id = $1', [
-    userId,
-  ])
-  return result.rows[0] || null
-}
-
-export const verifyPassword = async (
-  password: string,
-  hashedPassword: string
-): Promise<boolean> => {
-  return bcrypt.compare(password, hashedPassword)
-}
+export default User
