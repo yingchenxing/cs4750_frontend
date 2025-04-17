@@ -517,6 +517,130 @@ Error Response (500 Internal Server Error):
 }
 ```
 
+### Reviews
+
+#### Get Listing Reviews
+
+```http
+GET /api/reviews/listing/{listingId}
+```
+
+Response:
+
+```json
+[
+  {
+    "reviewId": "number",
+    "listingId": "number",
+    "rating": "number",
+    "comment": "string",
+    "user": {
+      "userId": "number",
+      "username": "string",
+      "profilePicture": "string"
+    }
+  }
+]
+```
+
+#### Create Review
+
+```http
+POST /api/reviews/listing/{listingId}
+```
+
+Request body:
+
+```json
+{
+  "userId": "number",
+  "rating": "number",
+  "comment": "string"
+}
+```
+
+Response (201 Created):
+
+```json
+{
+  "reviewId": "number",
+  "listingId": "number",
+  "rating": "number",
+  "comment": "string",
+  "user": {
+    "userId": "number",
+    "username": "string",
+    "profilePicture": "string"
+  }
+}
+```
+
+Error Response (400 Bad Request):
+
+```json
+{
+  "error": "Bad Request",
+  "message": "You have already reviewed this listing"
+}
+```
+
+#### Update Review
+
+```http
+PUT /api/reviews/{reviewId}
+```
+
+Request body:
+
+```json
+{
+  "rating": "number",
+  "comment": "string"
+}
+```
+
+Response:
+
+```json
+{
+  "reviewId": "number",
+  "listingId": "number",
+  "rating": "number",
+  "comment": "string",
+  "user": {
+    "userId": "number",
+    "username": "string",
+    "profilePicture": "string"
+  }
+}
+```
+
+Error Response (404 Not Found):
+
+```json
+{
+  "error": "Not Found",
+  "message": "Review not found"
+}
+```
+
+#### Delete Review
+
+```http
+DELETE /api/reviews/{reviewId}
+```
+
+Response (204 No Content)
+
+Error Response (404 Not Found):
+
+```json
+{
+  "error": "Not Found",
+  "message": "Review not found"
+}
+```
+
 ## Error Responses
 
 All API endpoints may return the following error responses:

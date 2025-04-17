@@ -17,6 +17,7 @@ import listingRoutes from './routes/listings'
 // import messageRoutes from './routes/messages'
 // import roommateRoutes from './routes/roommates'
 import preferenceRoutes from './routes/preferences'
+import reviewRoutes from './routes/reviews'
 // Load environment variables
 dotenv.config()
 
@@ -47,6 +48,7 @@ app.use('/api/listings', listingRoutes)
 // app.use('/api/messages', messageRoutes)
 // app.use('/api/roommates', roommateRoutes)
 app.use('/api/preferences', preferenceRoutes)
+app.use('/api/reviews', reviewRoutes)
 
 // Error handling middleware
 app.use(
