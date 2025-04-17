@@ -1,64 +1,82 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, MessageSquare, Loader2 } from "lucide-react";
-import { getAllProfiles, handlePreferencesError, type UserPreferencesWithProfile } from "../services/preferences";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Search, Filter, MessageSquare, Loader2 } from 'lucide-react'
+import {
+  getAllProfiles,
+  handlePreferencesError,
+  type UserPreferencesWithProfile,
+} from '../services/preferences'
+import { toast } from 'sonner'
 
 export default function RoommatesPage() {
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [profiles, setProfiles] = useState<UserPreferencesWithProfile[]>([]);
+  const router = useRouter()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [profiles, setProfiles] = useState<UserPreferencesWithProfile[]>([])
   const [filters, setFilters] = useState({
-    gender: "all",
-    cleanlinessLevel: "all",
+    gender: 'all',
+    cleanlinessLevel: 'all',
     pets: false,
     smokingHabits: false,
-  });
+  })
 
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        setIsLoading(true);
-        const data = await getAllProfiles();
-        setProfiles(data);
+        setIsLoading(true)
+        const data = await getAllProfiles()
+        setProfiles(data)
       } catch (error) {
-        const { message } = handlePreferencesError(error);
-        toast.error(message);
+        const { message } = handlePreferencesError(error)
+        toast.error(message)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchProfiles();
-  }, []);
+    fetchProfiles()
+  }, [])
 
   // Filter roommates based on search query and filters
   const filteredRoommates = profiles.filter((profile) => {
     const matchesSearch = profile.user.username
       .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+      .includes(searchQuery.toLowerCase())
 
     const matchesGender =
-      filters.gender === "all" ||
-      profile.gender.toLowerCase() === filters.gender.toLowerCase();
+      filters.gender === 'all' ||
+      profile.gender.toLowerCase() === filters.gender.toLowerCase()
 
     const matchesCleanliness =
-      filters.cleanlinessLevel === "all" ||
-      profile.cleanlinessLevel === filters.cleanlinessLevel;
+      filters.cleanlinessLevel === 'all' ||
+      profile.cleanlinessLevel === filters.cleanlinessLevel
 
-    const matchesPets = !filters.pets || profile.pets === filters.pets;
+    const matchesPets = !filters.pets || profile.pets === filters.pets
 
-    const matchesSmoking = !filters.smokingHabits || profile.smokingHabits === filters.smokingHabits;
+    const matchesSmoking =
+      !filters.smokingHabits || profile.smokingHabits === filters.smokingHabits
 
     return (
       matchesSearch &&
@@ -66,12 +84,12 @@ export default function RoommatesPage() {
       matchesCleanliness &&
       matchesPets &&
       matchesSmoking
-    );
-  });
+    )
+  })
 
   const handleStartChat = (userId: number) => {
-    router.push(`/messages?chatWith=${userId}`);
-  };
+    router.push(`/messages/${userId}`)
+  }
 
   if (isLoading) {
     return (
@@ -81,7 +99,7 @@ export default function RoommatesPage() {
           <p>Loading profiles...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -118,8 +136,7 @@ export default function RoommatesPage() {
                   value={filters.gender}
                   onValueChange={(value) =>
                     setFilters({ ...filters, gender: value })
-                  }
-                >
+                  }>
                   <SelectTrigger id="gender">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
@@ -128,7 +145,9 @@ export default function RoommatesPage() {
                     <SelectItem value="Male">Male</SelectItem>
                     <SelectItem value="Female">Female</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
-                    <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                    <SelectItem value="Prefer not to say">
+                      Prefer not to say
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -139,8 +158,7 @@ export default function RoommatesPage() {
                   value={filters.cleanlinessLevel}
                   onValueChange={(value) =>
                     setFilters({ ...filters, cleanlinessLevel: value })
-                  }
-                >
+                  }>
                   <SelectTrigger id="cleanliness">
                     <SelectValue placeholder="Select cleanliness level" />
                   </SelectTrigger>
@@ -172,7 +190,10 @@ export default function RoommatesPage() {
                     id="smoking"
                     checked={filters.smokingHabits}
                     onCheckedChange={(checked) =>
-                      setFilters({ ...filters, smokingHabits: checked as boolean })
+                      setFilters({
+                        ...filters,
+                        smokingHabits: checked as boolean,
+                      })
                     }
                   />
                   <Label htmlFor="smoking">Smoker</Label>
@@ -185,13 +206,12 @@ export default function RoommatesPage() {
                 className="w-full"
                 onClick={() =>
                   setFilters({
-                    gender: "all",
-                    cleanlinessLevel: "all",
+                    gender: 'all',
+                    cleanlinessLevel: 'all',
                     pets: false,
                     smokingHabits: false,
                   })
-                }
-              >
+                }>
                 Reset Filters
               </Button>
             </CardFooter>
@@ -212,8 +232,13 @@ export default function RoommatesPage() {
               <Card key={profile.userId}>
                 <CardHeader className="flex flex-row items-center space-x-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={profile.user.profilePicture} alt={profile.user.username} />
-                    <AvatarFallback>{profile.user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarImage
+                      src={profile.user.profilePicture}
+                      alt={profile.user.username}
+                    />
+                    <AvatarFallback>
+                      {profile.user.username.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <CardTitle>{profile.user.username}</CardTitle>
@@ -226,21 +251,23 @@ export default function RoommatesPage() {
                   <p className="text-sm">{profile.bio}</p>
                   <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <span className="font-medium">Cleanliness:</span>{" "}
+                      <span className="font-medium">Cleanliness:</span>{' '}
                       {profile.cleanlinessLevel}
                     </div>
                     <div>
-                      <span className="font-medium">Pets:</span>{" "}
-                      {profile.pets ? "Yes" : "No"}
+                      <span className="font-medium">Pets:</span>{' '}
+                      {profile.pets ? 'Yes' : 'No'}
                     </div>
                     <div>
-                      <span className="font-medium">Smoking:</span>{" "}
-                      {profile.smokingHabits ? "Yes" : "No"}
+                      <span className="font-medium">Smoking:</span>{' '}
+                      {profile.smokingHabits ? 'Yes' : 'No'}
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" onClick={() => handleStartChat(profile.userId)}>
+                  <Button
+                    className="w-full"
+                    onClick={() => handleStartChat(profile.userId)}>
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Message {profile.user.username}
                   </Button>
@@ -252,7 +279,9 @@ export default function RoommatesPage() {
           {filteredRoommates.length === 0 && (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
               <Search className="h-10 w-10 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-medium">No roommate profiles found</h3>
+              <h3 className="mt-4 text-lg font-medium">
+                No roommate profiles found
+              </h3>
               <p className="mt-2 text-sm text-muted-foreground">
                 Try adjusting your search or filters to find more profiles.
               </p>
@@ -261,5 +290,5 @@ export default function RoommatesPage() {
         </div>
       </div>
     </div>
-  );
-} 
+  )
+}
