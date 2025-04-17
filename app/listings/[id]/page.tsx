@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,6 +25,7 @@ import {
 export default function ListingDetailsPage() {
   const { user } = useAuth();
   const params = useParams();
+  const router = useRouter();
   const [listing, setListing] = useState<Listing | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isSaved, setIsSaved] = useState(false);
@@ -372,13 +373,17 @@ export default function ListingDetailsPage() {
                   <p className="text-sm text-muted-foreground">{listing.user.email}</p>
                 </div>
               </div>
-              <Button className="w-full" variant="outline">
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => router.push(`/messages/${listing.user.userId}`)}
+              >
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Message
               </Button>
-              <Button className="w-full" variant="outline">
+              {/* <Button className="w-full" variant="outline">
                 View Profile
-              </Button>
+              </Button> */}
             </CardContent>
           </Card>
 
