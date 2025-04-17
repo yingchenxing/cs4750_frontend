@@ -12,11 +12,11 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 
 // Import routes
-import authRoutes from './routes/auth'
+// import authRoutes from './routes/auth'
 import listingRoutes from './routes/listings'
-import messageRoutes from './routes/messages'
-import roommateRoutes from './routes/roommates'
-
+// import messageRoutes from './routes/messages'
+// import roommateRoutes from './routes/roommates'
+import preferenceRoutes from './routes/preferences'
 // Load environment variables
 dotenv.config()
 
@@ -42,10 +42,11 @@ app.use(
 app.use(express.json())
 
 // Routes
-app.use('/api/auth', authRoutes)
+// app.use('/api/auth', authRoutes)
 app.use('/api/listings', listingRoutes)
-app.use('/api/messages', messageRoutes)
-app.use('/api/roommates', roommateRoutes)
+// app.use('/api/messages', messageRoutes)
+// app.use('/api/roommates', roommateRoutes)
+app.use('/api/preferences', preferenceRoutes)
 
 // Error handling middleware
 app.use(

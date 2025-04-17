@@ -87,14 +87,8 @@ Response:
 ```json
 [
   {
-    "listing_id": "number",
-    "user": {
-      "userId": "number",
-      "username": "string",
-      "email": "string",
-      "phoneNumber": "string",
-      "profilePicture": "string"
-    },
+    "listingId": "number",
+    "userId": "number",
     "title": "string",
     "description": "string",
     "propertyType": "string",
@@ -103,9 +97,60 @@ Response:
     "leaseDuration": "number",
     "availTimeStart": "string",
     "availTimeEnd": "string",
-    "image": "string"
+    "image": "string",
+    "isSublease": "boolean",
+    "subleaseReason": "string (only if isSublease is true)",
+    "user": {
+      "userId": "number",
+      "username": "string",
+      "email": "string",
+      "phoneNumber": "string",
+      "profilePicture": "string"
+    }
   }
 ]
+```
+
+#### Get Listing by ID
+
+```http
+GET /api/listings/{listingId}
+```
+
+Response:
+
+```json
+{
+  "listingId": "number",
+  "userId": "number",
+  "title": "string",
+  "description": "string",
+  "propertyType": "string",
+  "location": "string",
+  "rentPrice": "number",
+  "leaseDuration": "number",
+  "availTimeStart": "string",
+  "availTimeEnd": "string",
+  "image": "string",
+  "isSublease": "boolean",
+  "subleaseReason": "string (only if isSublease is true)",
+  "user": {
+    "userId": "number",
+    "username": "string",
+    "email": "string",
+    "phoneNumber": "string",
+    "profilePicture": "string"
+  }
+}
+```
+
+Error Response (404 Not Found):
+
+```json
+{
+  "error": "Not Found",
+  "message": "Listing not found"
+}
 ```
 
 #### Create Listing
@@ -133,30 +178,12 @@ Request body:
 }
 ```
 
-Example request:
-
-```json
-{
-  "userId": 1,
-  "title": "Summer Sublet Room",
-  "description": "Subletting my room near campus for the summer.",
-  "location": "123 University Ave",
-  "propertyType": "Apartment",
-  "rentPrice": 900,
-  "leaseDuration": 3,
-  "availTimeStart": "2025-06-01",
-  "availTimeEnd": "2025-09-01",
-  "image": "https://i.imgur.com/Dt145tX.jpeg",
-  "isSublease": true,
-  "subleaseReason": "Going abroad for internship"
-}
-```
-
 Response:
 
 ```json
 {
-  "listing_id": "number",
+  "listingId": "number",
+  "userId": "number",
   "title": "string",
   "description": "string",
   "propertyType": "string",
@@ -175,12 +202,29 @@ Response:
 POST /api/listings/{listingId}/save
 ```
 
+Request body:
+
+```json
+{
+  "userId": "number"
+}
+```
+
 Response (200 OK):
 
 ```json
 {
   "savedId": "number",
   "savedAt": "string (ISO-8601 datetime)"
+}
+```
+
+Error Response (500 Internal Server Error):
+
+```json
+{
+  "error": "Internal Server Error",
+  "message": "Failed to save listing"
 }
 ```
 
@@ -316,6 +360,160 @@ Request body:
 ```json
 {
   "content": "string"
+}
+```
+
+### User Preferences
+
+#### Create User Preferences
+
+```http
+POST /api/preferences
+```
+
+Request body:
+
+```json
+{
+  "userId": "number",
+  "gender": "string",
+  "cleanlinessLevel": "string",
+  "age": "number",
+  "pets": "boolean",
+  "smokingHabits": "boolean",
+  "bio": "string"
+}
+```
+
+Response (201 Created):
+
+```json
+{
+  "userId": "number",
+  "gender": "string",
+  "cleanlinessLevel": "string",
+  "age": "number",
+  "pets": "boolean",
+  "smokingHabits": "boolean",
+  "bio": "string"
+}
+```
+
+Error Response (400 Bad Request):
+
+```json
+{
+  "error": "Bad Request",
+  "message": "Profile already exists for this user. Use PUT to update."
+}
+```
+
+#### Get User Preferences
+
+```http
+GET /api/preferences/{userId}
+```
+
+Response:
+
+```json
+{
+  "userId": "number",
+  "gender": "string",
+  "cleanlinessLevel": "string",
+  "age": "number",
+  "pets": "boolean",
+  "smokingHabits": "boolean",
+  "bio": "string"
+}
+```
+
+Error Response (404 Not Found):
+
+```json
+{
+  "error": "Not Found",
+  "message": "Roommate profile not found"
+}
+```
+
+#### Update User Preferences
+
+```http
+PUT /api/preferences/{userId}
+```
+
+Request body:
+
+```json
+{
+  "gender": "string",
+  "cleanlinessLevel": "string",
+  "age": "number",
+  "pets": "boolean",
+  "smokingHabits": "boolean",
+  "bio": "string"
+}
+```
+
+Response:
+
+```json
+{
+  "userId": "number",
+  "gender": "string",
+  "cleanlinessLevel": "string",
+  "age": "number",
+  "pets": "boolean",
+  "smokingHabits": "boolean",
+  "bio": "string"
+}
+```
+
+Error Response (404 Not Found):
+
+```json
+{
+  "error": "Not Found",
+  "message": "Profile not found. Use POST to create a new profile."
+}
+```
+
+#### Get All Profiles
+
+```http
+GET /api/preferences
+```
+
+Response:
+
+```json
+[
+  {
+    "userId": "number",
+    "gender": "string",
+    "cleanlinessLevel": "string",
+    "age": "number",
+    "pets": "boolean",
+    "smokingHabits": "boolean",
+    "bio": "string",
+    "user": {
+      "userId": "number",
+      "username": "string",
+      "email": "string",
+      "phoneNumber": "string",
+      "profilePicture": "string"
+    }
+  }
+]
+```
+
+Error Response (500 Internal Server Error):
+
+```json
+{
+  "error": "Internal Server Error",
+  "message": "Failed to fetch profiles"
 }
 ```
 
