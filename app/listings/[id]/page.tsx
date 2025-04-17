@@ -1,86 +1,78 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
 import { MessageSquare, Share2, Bookmark, MapPin, DollarSign, Calendar as CalendarIcon } from "lucide-react";
 import Image from "next/image";
-
-// Mock data for a single listing
-const mockListing = {
-  id: "1",
-  title: "Cozy Studio Apartment Near Campus",
-  description: "Perfect for graduate students, this studio apartment offers a quiet and comfortable living space just 5 minutes walk from campus. Recently renovated with modern appliances and plenty of natural light.",
-  propertyType: "Studio",
-  location: "123 University Ave, Charlottesville, VA",
-  rentPrice: 1200,
-  leaseDuration: "12 months",
-  availTimeStart: new Date("2024-05-01"),
-  availTimeEnd: new Date("2024-08-31"),
-  isSublease: true,
-  isHouse: false,
-  images: [
-    "/listings/apartment1.jpg",
-    "/listings/apartment2.jpg",
-    "/listings/apartment3.jpg",
-  ],
-  amenities: [
-    "In-unit laundry",
-    "Dishwasher",
-    "Central AC",
-    "High-speed internet",
-    "Furnished",
-  ],
-  owner: {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "+1 (555) 123-4567",
-    avatar: "/avatars/01.png",
-    listingsCount: 5,
-    memberSince: "2023",
-  },
-};
+import { Listing, getListingById } from "../../services/listings";
 
 export default function ListingDetailsPage() {
-  const [activeImage, setActiveImage] = useState(0);
+  const params = useParams();
+  const [listing, setListing] = useState<Listing | null>(null);
   const [isSaved, setIsSaved] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchListing = async () => {
+      const listingId = params?.id;
+      if (!listingId || Array.isArray(listingId)) {
+        setError("Invalid listing ID");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const data = await getListingById(listingId);
+        setListing(data);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching listing:', error);
+        setError('Failed to load listing details');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchListing();
+  }, [params?.id]);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error || !listing) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center text-red-500">{error || 'Listing not found'}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Image Gallery */}
+          {/* Image */}
           <Card>
             <CardContent className="p-0">
               <div className="relative aspect-video">
                 <Image
-                  src={mockListing.images[activeImage]}
-                  alt={mockListing.title}
+                  src={listing.image}
+                  alt={listing.title}
                   fill
                   className="object-cover rounded-t-lg"
                 />
-              </div>
-              <div className="p-4 flex gap-2 overflow-x-auto">
-                {mockListing.images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setActiveImage(index)}
-                    className={`relative w-20 h-20 flex-shrink-0 ${activeImage === index ? "ring-2 ring-blue-500" : ""
-                      }`}
-                  >
-                    <Image
-                      src={image}
-                      alt={`${mockListing.title} - Image ${index + 1}`}
-                      fill
-                      className="object-cover rounded-md"
-                    />
-                  </button>
-                ))}
               </div>
             </CardContent>
           </Card>
@@ -90,10 +82,10 @@ export default function ListingDetailsPage() {
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-2xl">{mockListing.title}</CardTitle>
+                  <CardTitle className="text-2xl">{listing.title}</CardTitle>
                   <p className="text-muted-foreground flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
-                    {mockListing.location}
+                    {listing.location}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -114,45 +106,40 @@ export default function ListingDetailsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Property Type</p>
-                  <p className="font-medium">{mockListing.propertyType}</p>
+                  <p className="font-medium">{listing.propertyType}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Rent</p>
                   <p className="font-medium flex items-center gap-1">
                     <DollarSign className="h-4 w-4" />
-                    {mockListing.rentPrice}/month
+                    {listing.rentPrice}/month
                   </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Lease Duration</p>
-                  <p className="font-medium">{mockListing.leaseDuration}</p>
+                  <p className="font-medium">{listing.leaseDuration} months</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Availability</p>
                   <p className="font-medium flex items-center gap-1">
                     <CalendarIcon className="h-4 w-4" />
-                    {mockListing.availTimeStart.toLocaleDateString()} -{" "}
-                    {mockListing.availTimeEnd.toLocaleDateString()}
+                    {new Date(listing.availTimeStart).toLocaleDateString()} -{" "}
+                    {new Date(listing.availTimeEnd).toLocaleDateString()}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <h3 className="font-semibold">Description</h3>
-                <p className="text-muted-foreground">{mockListing.description}</p>
+                <p className="text-muted-foreground">{listing.description}</p>
               </div>
 
-              <div className="space-y-4">
-                <h3 className="font-semibold">Amenities</h3>
-                <ul className="grid grid-cols-2 gap-2">
-                  {mockListing.amenities.map((amenity, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-blue-500" />
-                      {amenity}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {listing.isSublease && listing.subleaseReason && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Sublease Reason</h3>
+                  <p className="text-muted-foreground">{listing.subleaseReason}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -167,24 +154,12 @@ export default function ListingDetailsPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={mockListing.owner.avatar} />
-                  <AvatarFallback>{mockListing.owner.name[0]}</AvatarFallback>
+                  <AvatarImage src={listing.user.profilePicture} />
+                  <AvatarFallback>{listing.user.username[0]}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium">{mockListing.owner.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Member since {mockListing.owner.memberSince}
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Listings</p>
-                  <p className="font-medium">{mockListing.owner.listingsCount}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Response rate</p>
-                  <p className="font-medium">100%</p>
+                  <p className="font-medium">{listing.user.username}</p>
+                  <p className="text-sm text-muted-foreground">{listing.user.email}</p>
                 </div>
               </div>
               <Button className="w-full" variant="outline">
@@ -205,7 +180,7 @@ export default function ListingDetailsPage() {
             <CardContent>
               <Calendar
                 mode="single"
-                selected={mockListing.availTimeStart}
+                selected={new Date(listing.availTimeStart)}
                 className="rounded-md border"
               />
             </CardContent>

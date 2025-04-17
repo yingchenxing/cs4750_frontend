@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,16 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/app/context/AuthContext";
 import { toast } from "sonner";
+import { getUserPreferences, createUserPreferences, updateUserPreferences, handlePreferencesError, type UserPreferences, type CreatePreferencesRequest, type UpdatePreferencesRequest } from "../services/preferences";
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const [preferences, setPreferences] = useState({
-    gender: "Male",
-    cleanlinessLevel: "Moderate",
-    age: "22",
-    pets: false,
-    smokingHabits: false
-  });
+  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [needsSetup, setNeedsSetup] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingPreferences, setIsEditingPreferences] = useState(false);
@@ -33,7 +30,49 @@ export default function ProfilePage() {
     profilePicture: user?.profilePicture ?? "",
     bio: "Student at University of Example. Looking for housing near campus.",
   });
-  const [preferencesFormData, setPreferencesFormData] = useState({ ...preferences });
+  const [preferencesFormData, setPreferencesFormData] = useState<CreatePreferencesRequest>({
+    userId: user?.userId || 0,
+    gender: "Prefer not to say",
+    cleanlinessLevel: "Moderate",
+    age: 20,
+    pets: false,
+    smokingHabits: false,
+    bio: "",
+  });
+
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      if (!user?.userId) return;
+
+      try {
+        setIsLoading(true);
+        const data = await getUserPreferences(user.userId);
+        setPreferences(data);
+        setPreferencesFormData({
+          userId: user.userId,
+          gender: data.gender,
+          cleanlinessLevel: data.cleanlinessLevel,
+          age: data.age,
+          pets: data.pets,
+          smokingHabits: data.smokingHabits,
+          bio: data.bio,
+        });
+        setNeedsSetup(false);
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          setNeedsSetup(true);
+          setIsEditingPreferences(true);
+        } else {
+          const { message } = handlePreferencesError(error);
+          toast.error(message);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPreferences();
+  }, [user?.userId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,11 +81,33 @@ export default function ProfilePage() {
     toast.success("Profile updated successfully!");
   };
 
-  const handlePreferencesSubmit = (e: React.FormEvent) => {
+  const handlePreferencesSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPreferences(preferencesFormData);
-    setIsEditingPreferences(false);
-    toast.success("Preferences updated successfully!");
+    if (!user?.userId) return;
+
+    try {
+      let updatedPreferences;
+      if (needsSetup) {
+        updatedPreferences = await createUserPreferences(preferencesFormData);
+        setNeedsSetup(false);
+      } else {
+        const updateData: UpdatePreferencesRequest = {
+          gender: preferencesFormData.gender,
+          cleanlinessLevel: preferencesFormData.cleanlinessLevel,
+          age: preferencesFormData.age,
+          pets: preferencesFormData.pets,
+          smokingHabits: preferencesFormData.smokingHabits,
+          bio: preferencesFormData.bio,
+        };
+        updatedPreferences = await updateUserPreferences(user.userId, updateData);
+      }
+      setPreferences(updatedPreferences);
+      setIsEditingPreferences(false);
+      toast.success(needsSetup ? "Preferences created successfully!" : "Preferences updated successfully!");
+    } catch (error) {
+      const { message } = handlePreferencesError(error);
+      toast.error(message);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -54,8 +115,8 @@ export default function ProfilePage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handlePreferencesChange = (name: string, value: string | boolean) => {
-    setPreferencesFormData(prev => ({ ...prev, [name]: value }));
+  const handlePreferencesChange = (name: string, value: string | boolean | number) => {
+    setPreferencesFormData((prev: CreatePreferencesRequest) => ({ ...prev, [name]: value }));
   };
 
   if (!user) {
@@ -72,6 +133,14 @@ export default function ProfilePage() {
             </Button>
           </CardFooter>
         </Card>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">Loading preferences...</div>
       </div>
     );
   }
@@ -174,11 +243,15 @@ export default function ProfilePage() {
         <TabsContent value="preferences">
           <Card>
             <CardHeader>
-              <CardTitle>Housing Preferences</CardTitle>
-              <CardDescription>Set your preferences for finding the perfect housing match.</CardDescription>
+              <CardTitle>{needsSetup ? "Set Up Your Preferences" : "Housing Preferences"}</CardTitle>
+              <CardDescription>
+                {needsSetup
+                  ? "Welcome! Please set up your housing preferences to help us find your perfect match."
+                  : "Set your preferences for finding the perfect housing match."}
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              {isEditingPreferences ? (
+              {(isEditingPreferences || needsSetup) ? (
                 <form onSubmit={handlePreferencesSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label>Gender</Label>
@@ -193,6 +266,7 @@ export default function ProfilePage() {
                         <SelectItem value="Male">Male</SelectItem>
                         <SelectItem value="Female">Female</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
+                        <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -217,7 +291,15 @@ export default function ProfilePage() {
                     <Input
                       type="number"
                       value={preferencesFormData.age}
-                      onChange={(e) => handlePreferencesChange("age", e.target.value)}
+                      onChange={(e) => handlePreferencesChange("age", parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Bio</Label>
+                    <Textarea
+                      value={preferencesFormData.bio}
+                      onChange={(e) => handlePreferencesChange("bio", e.target.value)}
+                      placeholder="Tell us about yourself..."
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -235,33 +317,39 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div className="flex justify-end space-x-2">
-                    <Button type="button" variant="outline" onClick={() => setIsEditingPreferences(false)}>
-                      Cancel
-                    </Button>
-                    <Button type="submit">Save Preferences</Button>
+                    {!needsSetup && (
+                      <Button type="button" variant="outline" onClick={() => setIsEditingPreferences(false)}>
+                        Cancel
+                      </Button>
+                    )}
+                    <Button type="submit">{needsSetup ? "Create Preferences" : "Save Changes"}</Button>
                   </div>
                 </form>
               ) : (
                 <div className="space-y-4">
                   <div>
                     <Label>Gender</Label>
-                    <p className="text-sm text-muted-foreground">{preferences.gender}</p>
+                    <p className="text-sm text-muted-foreground">{preferences?.gender}</p>
                   </div>
                   <div>
                     <Label>Cleanliness Level</Label>
-                    <p className="text-sm text-muted-foreground">{preferences.cleanlinessLevel}</p>
+                    <p className="text-sm text-muted-foreground">{preferences?.cleanlinessLevel}</p>
                   </div>
                   <div>
                     <Label>Age</Label>
-                    <p className="text-sm text-muted-foreground">{preferences.age}</p>
+                    <p className="text-sm text-muted-foreground">{preferences?.age}</p>
+                  </div>
+                  <div>
+                    <Label>Bio</Label>
+                    <p className="text-sm text-muted-foreground">{preferences?.bio || "No bio provided"}</p>
                   </div>
                   <div>
                     <Label>Pets</Label>
-                    <p className="text-sm text-muted-foreground">{preferences.pets ? "Yes" : "No"}</p>
+                    <p className="text-sm text-muted-foreground">{preferences?.pets ? "Yes" : "No"}</p>
                   </div>
                   <div>
                     <Label>Smoking Habits</Label>
-                    <p className="text-sm text-muted-foreground">{preferences.smokingHabits ? "Yes" : "No"}</p>
+                    <p className="text-sm text-muted-foreground">{preferences?.smokingHabits ? "Yes" : "No"}</p>
                   </div>
                   <Button onClick={() => setIsEditingPreferences(true)}>Edit Preferences</Button>
                 </div>

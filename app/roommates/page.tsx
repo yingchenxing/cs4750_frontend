@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,59 +9,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, MessageSquare } from "lucide-react";
-
-// Mock data for roommate profiles
-const mockRoommates = [
-  {
-    id: 1,
-    username: "johndoe",
-    age: 22,
-    gender: "Male",
-    cleanlinessLevel: "Moderate",
-    pets: false,
-    smokingHabits: false,
-    bio: "Student at University of Example. Looking for housing near campus.",
-    profilePicture: "/avatars/01.png",
-  },
-  {
-    id: 2,
-    username: "janedoe",
-    age: 21,
-    gender: "Female",
-    cleanlinessLevel: "Very Clean",
-    pets: true,
-    smokingHabits: false,
-    bio: "Graduate student in Computer Science. I have a friendly cat named Luna.",
-    profilePicture: "/avatars/02.png",
-  },
-  {
-    id: 3,
-    username: "mikebrown",
-    age: 23,
-    gender: "Male",
-    cleanlinessLevel: "Moderate",
-    pets: false,
-    smokingHabits: true,
-    bio: "Business major. Looking for a place to stay for the upcoming semester.",
-    profilePicture: "/avatars/03.png",
-  },
-  {
-    id: 4,
-    username: "sarahsmith",
-    age: 20,
-    gender: "Female",
-    cleanlinessLevel: "Very Clean",
-    pets: false,
-    smokingHabits: false,
-    bio: "Art student. I love to cook and bake in my free time.",
-    profilePicture: "/avatars/04.png",
-  },
-];
+import { Search, Filter, MessageSquare, Loader2 } from "lucide-react";
+import { getAllProfiles, handlePreferencesError, type UserPreferencesWithProfile } from "../services/preferences";
+import { toast } from "sonner";
 
 export default function RoommatesPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [profiles, setProfiles] = useState<UserPreferencesWithProfile[]>([]);
   const [filters, setFilters] = useState({
     gender: "all",
     cleanlinessLevel: "all",
@@ -69,22 +25,40 @@ export default function RoommatesPage() {
     smokingHabits: false,
   });
 
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getAllProfiles();
+        setProfiles(data);
+      } catch (error) {
+        const { message } = handlePreferencesError(error);
+        toast.error(message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfiles();
+  }, []);
+
   // Filter roommates based on search query and filters
-  const filteredRoommates = mockRoommates.filter((roommate) => {
-    const matchesSearch = roommate.username
+  const filteredRoommates = profiles.filter((profile) => {
+    const matchesSearch = profile.user.username
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
 
     const matchesGender =
-      filters.gender === "all" || roommate.gender === filters.gender;
+      filters.gender === "all" ||
+      profile.gender.toLowerCase() === filters.gender.toLowerCase();
 
     const matchesCleanliness =
       filters.cleanlinessLevel === "all" ||
-      roommate.cleanlinessLevel === filters.cleanlinessLevel;
+      profile.cleanlinessLevel === filters.cleanlinessLevel;
 
-    const matchesPets = !filters.pets || roommate.pets === filters.pets;
+    const matchesPets = !filters.pets || profile.pets === filters.pets;
 
-    const matchesSmoking = !filters.smokingHabits || roommate.smokingHabits === filters.smokingHabits;
+    const matchesSmoking = !filters.smokingHabits || profile.smokingHabits === filters.smokingHabits;
 
     return (
       matchesSearch &&
@@ -95,8 +69,19 @@ export default function RoommatesPage() {
     );
   });
 
-  const handleStartChat = (roommateId: number) => {
-    router.push(`/messages?chatWith=${roommateId}`)
+  const handleStartChat = (userId: number) => {
+    router.push(`/messages?chatWith=${userId}`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <p>Loading profiles...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -143,6 +128,7 @@ export default function RoommatesPage() {
                     <SelectItem value="Male">Male</SelectItem>
                     <SelectItem value="Female">Female</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
+                    <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -222,41 +208,41 @@ export default function RoommatesPage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            {filteredRoommates.map((roommate) => (
-              <Card key={roommate.id}>
+            {filteredRoommates.map((profile) => (
+              <Card key={profile.userId}>
                 <CardHeader className="flex flex-row items-center space-x-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={roommate.profilePicture} alt={roommate.username} />
-                    <AvatarFallback>{roommate.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarImage src={profile.user.profilePicture} alt={profile.user.username} />
+                    <AvatarFallback>{profile.user.username.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <CardTitle>{roommate.username}</CardTitle>
+                    <CardTitle>{profile.user.username}</CardTitle>
                     <CardDescription>
-                      {roommate.age} years old • {roommate.gender}
+                      {profile.age} years old • {profile.gender}
                     </CardDescription>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm">{roommate.bio}</p>
+                  <p className="text-sm">{profile.bio}</p>
                   <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <span className="font-medium">Cleanliness:</span>{" "}
-                      {roommate.cleanlinessLevel}
+                      {profile.cleanlinessLevel}
                     </div>
                     <div>
                       <span className="font-medium">Pets:</span>{" "}
-                      {roommate.pets ? "Yes" : "No"}
+                      {profile.pets ? "Yes" : "No"}
                     </div>
                     <div>
                       <span className="font-medium">Smoking:</span>{" "}
-                      {roommate.smokingHabits ? "Yes" : "No"}
+                      {profile.smokingHabits ? "Yes" : "No"}
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" onClick={() => handleStartChat(roommate.id)}> {/* Assuming roommate.id is the user ID */}
+                  <Button className="w-full" onClick={() => handleStartChat(profile.userId)}>
                     <MessageSquare className="mr-2 h-4 w-4" />
-                    Message {roommate.username}
+                    Message {profile.user.username}
                   </Button>
                 </CardFooter>
               </Card>

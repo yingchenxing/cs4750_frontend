@@ -167,15 +167,15 @@ export default function MessagesPage() {
                   >
                     <div
                       className={`max-w-[70%] rounded-lg p-3 ${message.isOwn
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
                         }`}
                     >
                       <p className="text-sm">{message.content}</p>
                       <p
                         className={`mt-1 text-xs ${message.isOwn
-                            ? "text-primary-foreground/70"
-                            : "text-muted-foreground"
+                          ? "text-primary-foreground/70"
+                          : "text-muted-foreground"
                           }`}
                       >
                         {message.timestamp}

@@ -62,8 +62,8 @@ export default function ListingsPage() {
       listing.leaseDuration.toString() === filters.leaseDuration;
 
     const matchesSublease = filters.isSublease === "all" ||
-      (filters.isSublease === "sublease" && listing.subleaseReason) ||
-      (filters.isSublease === "regular" && !listing.subleaseReason);
+      (filters.isSublease === "sublease" && listing.isSublease) ||
+      (filters.isSublease === "regular" && !listing.isSublease);
 
     return (
       matchesSearch &&
@@ -248,7 +248,7 @@ export default function ListingsPage() {
 
           <div className="grid gap-6 md:grid-cols-2">
             {filteredListings.map((listing) => (
-              <Card key={listing.listing_id} className="overflow-hidden">
+              <Card key={listing.listingId} className="overflow-hidden">
                 <div className="aspect-video w-full bg-muted">
                   {listing.image ? (
                     <img
@@ -301,7 +301,7 @@ export default function ListingsPage() {
                 </CardContent>
                 <CardFooter>
                   <Button className="w-full" asChild>
-                    <Link href={`/listings/${listing.listing_id}`}>
+                    <Link href={`/listings/${listing.listingId}`}>
                       View Details
                     </Link>
                   </Button>

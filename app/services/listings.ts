@@ -14,7 +14,7 @@ const api = axios.create({
 })
 
 export interface Listing {
-  listing_id: number
+  listingId: number
   user: {
     userId: number
     username: string
@@ -31,6 +31,7 @@ export interface Listing {
   availTimeStart: string
   availTimeEnd: string
   image: string
+  isSublease: boolean
   subleaseReason?: string
 }
 
@@ -55,6 +56,16 @@ export const getListings = async (): Promise<Listing[]> => {
     return response.data
   } catch (error) {
     console.error('Error fetching listings:', error)
+    throw error
+  }
+}
+
+export const getListingById = async (id: string | number): Promise<Listing> => {
+  try {
+    const response = await api.get<Listing>(`/api/listings/${id}`)
+    return response.data
+  } catch (error) {
+    console.error(`Error fetching listing with id ${id}:`, error)
     throw error
   }
 }
