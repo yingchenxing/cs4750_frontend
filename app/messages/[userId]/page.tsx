@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -10,10 +11,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Send, Search } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { toast } from "sonner";
-import { Message, Conversation, messageService } from "../services/messages";
+import {
+  Message,
+  Conversation,
+  messageService,
+} from "../../services/messages";
 
 export default function MessagesPage() {
   const { user } = useAuth();
+  const params = useParams();
+  const targetUserId = params?.userId ? parseInt(params.userId as string, 10) : null;
+
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
@@ -21,31 +29,33 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
+  // Initialize chat with target user
+  useEffect(() => {
+    const initializeChat = async () => {
+      if (!user?.userId || !targetUserId) return;
+
+      try {
+        // Fetch messages with target user
+        const messages = await messageService.getConversation(user.userId, targetUserId);
+        setMessages(messages);
+        setSelectedPartnerId(targetUserId);
+      } catch (error) {
+        console.error('Error initializing chat:', error);
+        setMessages([]);
+      }
+    };
+
+    initializeChat();
+  }, [targetUserId, user]);
+
   // Fetch all conversations
   useEffect(() => {
     const fetchConversations = async () => {
-      // 确保用户已登录且有 userId
-      if (!user?.userId) {
-        setIsLoading(false);
-        return;
-      }
+      if (!user?.userId) return;
 
       try {
         const conversations = await messageService.getConversations(user.userId);
         setConversations(conversations);
-
-        // 如果有会话，自动选择第一个
-        if (conversations.length > 0) {
-          const firstConversation = conversations[0];
-          setSelectedPartnerId(firstConversation.partnerId);
-
-          // 加载第一个会话的消息
-          const messages = await messageService.getConversation(
-            user.userId,
-            firstConversation.partnerId
-          );
-          setMessages(messages);
-        }
       } catch (error) {
         console.error('Error fetching conversations:', error);
         toast.error("Failed to load conversations");
@@ -55,7 +65,7 @@ export default function MessagesPage() {
     };
 
     fetchConversations();
-  }, [user?.userId]); // 只在 userId 变化时重新获取
+  }, [user]);
 
   const handleSendMessage = async () => {
     if (!selectedPartnerId || !newMessage.trim() || !user?.userId) return;
@@ -99,12 +109,10 @@ export default function MessagesPage() {
   };
 
   const handleSelectConversation = async (partnerId: number) => {
-    if (!user?.userId) return;
-
     setSelectedPartnerId(partnerId);
 
     try {
-      const conversationMessages = await messageService.getConversation(user.userId, partnerId);
+      const conversationMessages = await messageService.getConversation(user!.userId, partnerId);
       setMessages(conversationMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -120,14 +128,6 @@ export default function MessagesPage() {
     return (
       <div className="container mx-auto max-w-7xl px-4 py-10">
         <div className="text-center">Please log in to view messages</div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto max-w-7xl px-4 py-10">
-        <div className="text-center">Loading conversations...</div>
       </div>
     );
   }
@@ -151,46 +151,40 @@ export default function MessagesPage() {
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[500px]">
-              {filteredConversations.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  No conversations found
-                </div>
-              ) : (
-                filteredConversations.map((conv) => (
-                  <div
-                    key={conv.partnerId}
-                    className={`flex cursor-pointer items-center space-x-4 p-4 hover:bg-muted/50 ${selectedPartnerId === conv.partnerId ? "bg-muted" : ""
-                      }`}
-                    onClick={() => handleSelectConversation(conv.partnerId)}
-                  >
-                    <Avatar>
-                      <AvatarImage
-                        src={conv.partnerProfilePicture}
-                        alt={conv.partnerName}
-                      />
-                      <AvatarFallback>
-                        {conv.partnerName[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {conv.partnerName}
-                      </p>
-                      <p className="text-sm text-muted-foreground line-clamp-1">
-                        {conv.lastMessage.content}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end space-y-1">
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(conv.lastMessage.sentAt).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
+              {filteredConversations.map((conv) => (
+                <div
+                  key={conv.partnerId}
+                  className={`flex cursor-pointer items-center space-x-4 p-4 hover:bg-muted/50 ${selectedPartnerId === conv.partnerId ? "bg-muted" : ""
+                    }`}
+                  onClick={() => handleSelectConversation(conv.partnerId)}
+                >
+                  <Avatar>
+                    <AvatarImage
+                      src={conv.partnerProfilePicture}
+                      alt={conv.partnerName}
+                    />
+                    <AvatarFallback>
+                      {conv.partnerName[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {conv.partnerName}
+                    </p>
+                    <p className="text-sm text-muted-foreground line-clamp-1">
+                      {conv.lastMessage.content}
+                    </p>
                   </div>
-                ))
-              )}
+                  <div className="flex flex-col items-end space-y-1">
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(conv.lastMessage.sentAt).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </ScrollArea>
           </CardContent>
         </Card>
@@ -287,10 +281,7 @@ export default function MessagesPage() {
           <Card className="flex items-center justify-center">
             <CardContent>
               <p className="text-muted-foreground">
-                {conversations.length === 0
-                  ? "No conversations yet"
-                  : "Select a conversation to start messaging"
-                }
+                Select a conversation to start messaging
               </p>
             </CardContent>
           </Card>
