@@ -6,19 +6,39 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
-import { MessageSquare, Share2, Bookmark, MapPin, DollarSign, Calendar as CalendarIcon } from "lucide-react";
+import { MessageSquare, Share2, Bookmark, MapPin, DollarSign, Calendar as CalendarIcon, Star, Edit2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { Listing, getListingById } from "../../services/listings";
+import { Review, getListingReviews, createReview, updateReview, deleteReview, handleReviewError } from "../../services/reviews";
+import { useAuth } from "@/app/context/AuthContext";
+import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function ListingDetailsPage() {
+  const { user } = useAuth();
   const params = useParams();
   const [listing, setListing] = useState<Listing | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    rating: 5,
+    comment: "",
+  });
+  const [editingReview, setEditingReview] = useState<Review | null>(null);
 
   useEffect(() => {
-    const fetchListing = async () => {
+    const fetchData = async () => {
       const listingId = params?.id;
       if (!listingId || Array.isArray(listingId)) {
         setError("Invalid listing ID");
@@ -28,19 +48,70 @@ export default function ListingDetailsPage() {
 
       try {
         setIsLoading(true);
-        const data = await getListingById(listingId);
-        setListing(data);
+        const [listingData, reviewsData] = await Promise.all([
+          getListingById(listingId),
+          getListingReviews(listingId),
+        ]);
+        setListing(listingData);
+        setReviews(reviewsData);
         setError(null);
       } catch (error) {
-        console.error('Error fetching listing:', error);
+        console.error('Error fetching data:', error);
         setError('Failed to load listing details');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchListing();
+    fetchData();
   }, [params?.id]);
+
+  const handleReviewSubmit = async () => {
+    if (!user?.userId || !listing) return;
+
+    try {
+      if (editingReview) {
+        const updated = await updateReview(editingReview.reviewId, reviewForm);
+        setReviews(reviews.map(r => r.reviewId === updated.reviewId ? updated : r));
+        toast.success("Review updated successfully!");
+      } else {
+        const newReview = await createReview(listing.listingId, {
+          userId: user.userId,
+          ...reviewForm,
+        });
+        setReviews([newReview, ...reviews]);
+        toast.success("Review posted successfully!");
+      }
+      setIsReviewDialogOpen(false);
+      setReviewForm({ rating: 5, comment: "" });
+      setEditingReview(null);
+    } catch (error) {
+      const { message } = handleReviewError(error);
+      toast.error(message);
+    }
+  };
+
+  const handleEditReview = (review: Review) => {
+    setEditingReview(review);
+    setReviewForm({
+      rating: review.rating,
+      comment: review.comment,
+    });
+    setIsReviewDialogOpen(true);
+  };
+
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!confirm("Are you sure you want to delete this review?")) return;
+
+    try {
+      await deleteReview(reviewId);
+      setReviews(reviews.filter(r => r.reviewId !== reviewId));
+      toast.success("Review deleted successfully!");
+    } catch (error) {
+      const { message } = handleReviewError(error);
+      toast.error(message);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -57,6 +128,14 @@ export default function ListingDetailsPage() {
       </div>
     );
   }
+
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
+    : 0;
+
+  const userReview = user
+    ? reviews.find(r => r.user.userId === user.userId)
+    : null;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -139,6 +218,137 @@ export default function ListingDetailsPage() {
                   <h3 className="font-semibold">Sublease Reason</h3>
                   <p className="text-muted-foreground">{listing.subleaseReason}</p>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Reviews Section */}
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    Reviews
+                    <span className="text-sm font-normal text-muted-foreground">
+                      ({reviews.length})
+                    </span>
+                  </CardTitle>
+                  {reviews.length > 0 && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm">
+                        {averageRating.toFixed(1)} average rating
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {user && !userReview && (
+                  <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button>Write a Review</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{editingReview ? "Edit Review" : "Write a Review"}</DialogTitle>
+                        <DialogDescription>
+                          Share your experience with this listing
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Rating</label>
+                          <div className="flex gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                                className="focus:outline-none"
+                              >
+                                <Star
+                                  className={`h-6 w-6 ${star <= reviewForm.rating
+                                    ? "fill-yellow-400 text-yellow-400"
+                                    : "text-gray-300"
+                                    }`}
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Comment</label>
+                          <Textarea
+                            value={reviewForm.comment}
+                            onChange={(e) =>
+                              setReviewForm({ ...reviewForm, comment: e.target.value })
+                            }
+                            placeholder="Write your review here..."
+                            rows={4}
+                          />
+                        </div>
+                        <Button
+                          className="w-full"
+                          onClick={handleReviewSubmit}
+                          disabled={!reviewForm.comment.trim()}
+                        >
+                          {editingReview ? "Update Review" : "Post Review"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {reviews.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No reviews yet. Be the first to review this listing!
+                </p>
+              ) : (
+                reviews.map((review) => (
+                  <div key={review.reviewId} className="space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={review.user.profilePicture} />
+                          <AvatarFallback>
+                            {review.user.username[0].toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{review.user.username}</p>
+                        </div>
+                      </div>
+                      {user?.userId === review.user.userId && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditReview(review)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteReview(review.reviewId)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: review.rating }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className="h-4 w-4 fill-yellow-400 text-yellow-400"
+                        />
+                      ))}
+                    </div>
+                    <p className="text-sm">{review.comment}</p>
+                  </div>
+                ))
               )}
             </CardContent>
           </Card>
