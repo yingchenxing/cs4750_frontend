@@ -74,6 +74,48 @@ Response:
 "profilePicture": string
 }
 
+#### Get User Information
+
+```http
+GET /api/auth/user/{userId}
+```
+
+Parameters:
+
+- `userId` (path parameter): The ID of the user to fetch
+
+Response (200 OK):
+
+```json
+{
+  "userId": "number",
+  "username": "string",
+  "email": "string",
+  "phoneNumber": "string",
+  "profilePicture": "string"
+}
+```
+
+Error Responses:
+
+404 Not Found:
+
+```json
+{
+  "error": "Not Found",
+  "message": "User not found"
+}
+```
+
+500 Internal Server Error:
+
+```json
+{
+  "error": "Internal Server Error",
+  "message": "Failed to get user information"
+}
+```
+
 ### Listings
 
 #### Get All Listings
@@ -289,77 +331,111 @@ Request body:
 
 ### Messages
 
-#### Get Conversations
+#### Get User Conversations
 
 ```http
-GET /messages/conversations
+GET /api/messages/conversations/:userId
 ```
+
+Returns all conversations for a specific user. If no conversations are found, returns an empty array.
 
 Response:
 
 ```json
-{
-  "conversations": [
-    {
-      "id": "string",
-      "participants": [
-        {
-          "id": "string",
-          "firstName": "string",
-          "lastName": "string",
-          "profileImage": "string"
-        }
-      ],
-      "lastMessage": {
-        "content": "string",
-        "timestamp": "string",
-        "senderId": "string"
-      }
+[
+  {
+    "partnerId": "number",
+    "partnerName": "string",
+    "partnerProfilePicture": "string",
+    "lastMessage": {
+      "content": "string",
+      "sentAt": "string (ISO-8601 datetime)",
+      "isFromUser": "boolean"
     }
-  ]
+  }
+]
+```
+
+Error Response (500 Internal Server Error):
+
+```json
+{
+  "error": "Internal Server Error",
+  "message": "Failed to fetch conversations"
 }
 ```
 
-#### Get Messages in Conversation
+#### Get Conversation Messages
 
 ```http
-GET /messages/conversations/:conversationId
+GET /api/messages/conversation/:userId/:partnerId
 ```
 
-Query parameters:
-
-- `page` (optional): Page number for pagination
-- `limit` (optional): Number of messages per page
+Returns all messages between two users. If no messages are found, returns an empty array.
 
 Response:
 
 ```json
-{
-  "messages": [
-    {
-      "id": "string",
-      "content": "string",
-      "senderId": "string",
-      "timestamp": "string"
+[
+  {
+    "messageId": "number",
+    "content": "string",
+    "sentAt": "string (ISO-8601 datetime)",
+    "sender": {
+      "userId": "number",
+      "username": "string",
+      "profilePicture": "string"
     }
-  ],
-  "total": "number",
-  "page": "number",
-  "limit": "number"
+  }
+]
+```
+
+Error Response (500 Internal Server Error):
+
+```json
+{
+  "error": "Internal Server Error",
+  "message": "Failed to fetch messages"
 }
 ```
 
 #### Send Message
 
 ```http
-POST /messages/conversations/:conversationId
+POST /api/messages/send
 ```
 
 Request body:
 
 ```json
 {
+  "senderId": "number",
+  "receiverId": "number",
   "content": "string"
+}
+```
+
+Response (201 Created):
+
+```json
+{
+  "messageId": "number",
+  "content": "string",
+  "sentAt": "string (ISO-8601 datetime)",
+  "sender": {
+    "userId": "number",
+    "username": "string",
+    "profilePicture": "string"
+  }
+}
+```
+
+Error Response (500 Internal Server Error):
+
+```json
+{
+  "error": "Internal Server Error",
+  "message": "Failed to send message"
 }
 ```
 

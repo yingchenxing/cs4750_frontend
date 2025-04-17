@@ -14,8 +14,7 @@ import dotenv from 'dotenv'
 // Import routes
 // import authRoutes from './routes/auth'
 import listingRoutes from './routes/listings'
-// import messageRoutes from './routes/messages'
-// import roommateRoutes from './routes/roommates'
+import messageRoutes from './routes/messages'
 import preferenceRoutes from './routes/preferences'
 import reviewRoutes from './routes/reviews'
 // Load environment variables
@@ -45,8 +44,7 @@ app.use(express.json())
 // Routes
 // app.use('/api/auth', authRoutes)
 app.use('/api/listings', listingRoutes)
-// app.use('/api/messages', messageRoutes)
-// app.use('/api/roommates', roommateRoutes)
+app.use('/api/messages', messageRoutes)
 app.use('/api/preferences', preferenceRoutes)
 app.use('/api/reviews', reviewRoutes)
 

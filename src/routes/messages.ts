@@ -1,129 +1,179 @@
 import express from 'express'
-import {
-  createMessage,
-  getMessagesBetweenUsers,
-  getConversations,
-} from '../models/message'
-import { getUserById } from '../models/user'
+import { Message, User } from '../models'
+import { Op } from 'sequelize'
 
 const router = express.Router()
 
-// Get all conversations
-router.get(
-  '/conversations',
-  async (req: express.Request, res: express.Response): Promise<void> => {
-    try {
-      const { userId } = req.query
-      if (!userId) {
-        res.status(400).json({
-          error: 'Bad Request',
-          message: 'userId is required',
-        })
-        return
-      }
+// Get conversations for a user
+router.get('/conversations/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params
 
-      const conversations = await getConversations(Number(userId))
-      const conversationsWithUsers = await Promise.all(
-        conversations.map(async (conversation) => {
-          const user = await getUserById(conversation.userId)
-          return {
-            id: conversation.userId,
-            participants: user
-              ? [
-                  {
-                    id: user.userId,
-                    username: user.username,
-                    profileImage: user.profilePicture,
-                  },
-                ]
-              : [],
-            lastMessage: conversation.lastMessage,
-          }
-        })
-      )
+    // Find all messages where the user is either sender or receiver
+    const messages = await Message.findAll({
+      where: {
+        [Op.or]: [
+          { sender_id: parseInt(userId) },
+          { receiver_id: parseInt(userId) },
+        ],
+      },
+      include: [
+        {
+          model: User,
+          as: 'sender',
+          attributes: ['user_id', 'username', 'profile_picture'],
+        },
+        {
+          model: User,
+          as: 'receiver',
+          attributes: ['user_id', 'username', 'profile_picture'],
+        },
+      ],
+      order: [['sent_at', 'DESC']],
+    })
 
-      res.json({ conversations: conversationsWithUsers })
-    } catch (error) {
-      console.error('Error fetching conversations:', error)
-      res.status(500).json({
-        error: 'Internal Server Error',
-        message: 'Failed to fetch conversations',
-      })
+    // If no messages found, return empty array
+    if (!messages || messages.length === 0) {
+      return res.json([])
     }
-  }
-)
 
-// Get messages in a conversation
-router.get(
-  '/conversations/:conversationId',
-  async (req: express.Request, res: express.Response): Promise<void> => {
-    try {
-      const { conversationId } = req.params
-      const { userId, page = 1, limit = 50 } = req.query
+    // Group messages by conversation partner
+    const conversations = messages.reduce((acc: any, message: any) => {
+      const plainMessage = message.get({ plain: true })
+      const partnerId =
+        plainMessage.sender_id === parseInt(userId)
+          ? plainMessage.receiver_id
+          : plainMessage.sender_id
+      const partner =
+        plainMessage.sender_id === parseInt(userId)
+          ? plainMessage.receiver
+          : plainMessage.sender
 
-      if (!userId) {
-        res.status(400).json({
-          error: 'Bad Request',
-          message: 'userId is required',
-        })
-        return
+      if (!acc[partnerId]) {
+        acc[partnerId] = {
+          partnerId: partnerId,
+          partnerName: partner.username,
+          partnerProfilePicture: partner.profile_picture,
+          lastMessage: {
+            content: plainMessage.content,
+            sentAt: plainMessage.sent_at,
+            isFromUser: plainMessage.sender_id === parseInt(userId),
+          },
+        }
       }
+      return acc
+    }, {})
 
-      const offset = (Number(page) - 1) * Number(limit)
-      const messages = await getMessagesBetweenUsers(
-        Number(userId),
-        Number(conversationId),
-        Number(limit),
-        offset
-      )
-
-      res.json({
-        messages,
-        total: messages.length,
-        page: Number(page),
-        limit: Number(limit),
-      })
-    } catch (error) {
-      console.error('Error fetching messages:', error)
-      res.status(500).json({
-        error: 'Internal Server Error',
-        message: 'Failed to fetch messages',
-      })
-    }
+    return res.json(Object.values(conversations))
+  } catch (error) {
+    console.error('Error fetching conversations:', error)
+    return res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Failed to fetch conversations',
+    })
   }
-)
+})
 
-// Send message
-router.post(
-  '/conversations/:conversationId',
-  async (req: express.Request, res: express.Response): Promise<void> => {
-    try {
-      const { conversationId } = req.params
-      const { userId, content } = req.body
+// Get messages between two users
+router.get('/conversation/:userId/:partnerId', async (req, res) => {
+  try {
+    const { userId, partnerId } = req.params
 
-      if (!userId || !content) {
-        res.status(400).json({
-          error: 'Bad Request',
-          message: 'userId and content are required',
-        })
-        return
-      }
+    const messages = await Message.findAll({
+      where: {
+        [Op.or]: [
+          {
+            sender_id: parseInt(userId),
+            receiver_id: parseInt(partnerId),
+          },
+          {
+            sender_id: parseInt(partnerId),
+            receiver_id: parseInt(userId),
+          },
+        ],
+      },
+      include: [
+        {
+          model: User,
+          as: 'sender',
+          attributes: ['user_id', 'username', 'profile_picture'],
+        },
+      ],
+      order: [['sent_at', 'ASC']],
+    })
 
-      const message = await createMessage({
-        senderId: Number(userId),
-        receiverId: Number(conversationId),
-        content,
-      })
-
-      res.status(201).json(message)
-    } catch (error) {
-      console.error('Error sending message:', error)
-      res.status(500).json({
-        error: 'Internal Server Error',
-        message: 'Failed to send message',
-      })
+    // If no messages found, return empty array
+    if (!messages || messages.length === 0) {
+      return res.json([])
     }
+
+    return res.json(
+      messages.map((message) => {
+        const plainMessage = message.get({ plain: true })
+        return {
+          messageId: plainMessage.message_id,
+          content: plainMessage.content,
+          sentAt: plainMessage.sent_at,
+          sender: {
+            userId: plainMessage.sender.user_id,
+            username: plainMessage.sender.username,
+            profilePicture: plainMessage.sender.profile_picture,
+          },
+        }
+      })
+    )
+  } catch (error) {
+    console.error('Error fetching messages:', error)
+    return res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Failed to fetch messages',
+    })
   }
-)
+})
+
+// Send a message
+router.post('/send', async (req, res) => {
+  try {
+    const { senderId, receiverId, content } = req.body
+
+    // Create the message
+    const message = await Message.create({
+      sender_id: senderId,
+      receiver_id: receiverId,
+      content,
+      sent_at: new Date(),
+    })
+
+    // Fetch the created message with sender info
+    const messageWithSender = await Message.findOne({
+      where: { message_id: message.message_id },
+      include: [
+        {
+          model: User,
+          as: 'sender',
+          attributes: ['user_id', 'username', 'profile_picture'],
+        },
+      ],
+    })
+
+    const plainMessage = messageWithSender!.get({ plain: true })
+    return res.status(201).json({
+      messageId: plainMessage.message_id,
+      content: plainMessage.content,
+      sentAt: plainMessage.sent_at,
+      sender: {
+        userId: plainMessage.sender.user_id,
+        username: plainMessage.sender.username,
+        profilePicture: plainMessage.sender.profile_picture,
+      },
+    })
+  } catch (error) {
+    console.error('Error sending message:', error)
+    return res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Failed to send message',
+    })
+  }
+})
 
 export default router
