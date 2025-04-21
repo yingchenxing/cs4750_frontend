@@ -1,18 +1,6 @@
 'use client'
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, MessageSquare, Loader2 } from "lucide-react";
-import { getAllProfiles, handlePreferencesError, type UserPreferencesWithProfile } from "../services/preferences";
-import { useAuth } from "@/app/context/AuthContext";
-import { toast } from "sonner";
+
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -42,6 +30,7 @@ import {
   type UserPreferencesWithProfile,
 } from '../services/preferences'
 import { toast } from 'sonner'
+import { useAuth } from '@/lib/auth-context'
 
 export default function RoommatesPage() {
   const router = useRouter()
