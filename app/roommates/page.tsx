@@ -30,7 +30,7 @@ import {
   type UserPreferencesWithProfile,
 } from '../services/preferences'
 import { toast } from 'sonner'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '../context/AuthContext'
 
 export default function RoommatesPage() {
   const router = useRouter()
