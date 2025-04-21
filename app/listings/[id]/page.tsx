@@ -10,6 +10,7 @@ import { MessageSquare, Share2, Bookmark, MapPin, DollarSign, Calendar as Calend
 import Image from "next/image";
 import { Listing, getListingById } from "../../services/listings";
 import { Review, getListingReviews, createReview, updateReview, deleteReview, handleReviewError } from "../../services/reviews";
+import { SavedListing, checkIfListingSaved, saveListing, deleteSavedListing } from "../../services/savedListings";
 import { useAuth } from "@/app/context/AuthContext";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +30,7 @@ export default function ListingDetailsPage() {
   const [listing, setListing] = useState<Listing | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isSaved, setIsSaved] = useState(false);
+  const [savedListing, setSavedListing] = useState<SavedListing | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
@@ -53,6 +55,14 @@ export default function ListingDetailsPage() {
           getListingById(listingId),
           getListingReviews(listingId),
         ]);
+
+        // Check if the listing is saved by the current user
+        if (user?.userId) {
+          const savedData = await checkIfListingSaved(parseInt(listingId), user.userId);
+          setIsSaved(!!savedData);
+          setSavedListing(savedData);
+        }
+
         setListing(listingData);
         setReviews(reviewsData);
         setError(null);
@@ -65,7 +75,7 @@ export default function ListingDetailsPage() {
     };
 
     fetchData();
-  }, [params?.id]);
+  }, [params?.id, user?.userId]);
 
   const handleReviewSubmit = async () => {
     if (!user?.userId || !listing) return;
@@ -111,6 +121,30 @@ export default function ListingDetailsPage() {
     } catch (error) {
       const { message } = handleReviewError(error);
       toast.error(message);
+    }
+  };
+
+  const handleSaveToggle = async () => {
+    if (!user?.userId || !listing) {
+      toast.error("Please log in to save listings");
+      return;
+    }
+
+    try {
+      if (isSaved && savedListing) {
+        await deleteSavedListing(savedListing.savedId);
+        setIsSaved(false);
+        setSavedListing(null);
+        toast.success("Listing removed from saved items");
+      } else {
+        const saved = await saveListing(user.userId, listing.listingId);
+        setIsSaved(true);
+        setSavedListing(saved);
+        toast.success("Listing saved successfully");
+      }
+    } catch (error) {
+      console.error('Error toggling save:', error);
+      toast.error("Failed to update saved status");
     }
   };
 
@@ -172,7 +206,7 @@ export default function ListingDetailsPage() {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setIsSaved(!isSaved)}
+                    onClick={handleSaveToggle}
                   >
                     <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
                   </Button>

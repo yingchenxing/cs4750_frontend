@@ -271,9 +271,9 @@ export default function ListingsPage() {
                         {listing.location}
                       </CardDescription>
                     </div>
-                    <Button variant="ghost" size="icon">
+                    {/* <Button variant="ghost" size="icon">
                       <Heart className="h-4 w-4" />
-                    </Button>
+                    </Button> */}
                   </div>
                 </CardHeader>
                 <CardContent>
