@@ -32,7 +32,7 @@ export default function ProfilePage() {
   });
   const [preferencesFormData, setPreferencesFormData] = useState<CreatePreferencesRequest>({
     userId: user?.userId || 0,
-    gender: "Prefer not to say",
+    gender: "Other",
     cleanlinessLevel: "Moderate",
     age: 20,
     pets: false,
@@ -266,7 +266,6 @@ export default function ProfilePage() {
                         <SelectItem value="Male">Male</SelectItem>
                         <SelectItem value="Female">Female</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
-                        <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

@@ -11,10 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Filter, MessageSquare, Loader2 } from "lucide-react";
 import { getAllProfiles, handlePreferencesError, type UserPreferencesWithProfile } from "../services/preferences";
+import { useAuth } from "@/app/context/AuthContext";
 import { toast } from "sonner";
 
 export default function RoommatesPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [profiles, setProfiles] = useState<UserPreferencesWithProfile[]>([]);
@@ -30,7 +32,9 @@ export default function RoommatesPage() {
       try {
         setIsLoading(true);
         const data = await getAllProfiles();
-        setProfiles(data);
+        // Filter out current user's profile
+        const filteredData = data.filter(profile => profile.userId !== user?.userId);
+        setProfiles(filteredData);
       } catch (error) {
         const { message } = handlePreferencesError(error);
         toast.error(message);
@@ -40,7 +44,7 @@ export default function RoommatesPage() {
     };
 
     fetchProfiles();
-  }, []);
+  }, [user?.userId]);
 
   // Filter roommates based on search query and filters
   const filteredRoommates = profiles.filter((profile) => {
@@ -128,7 +132,6 @@ export default function RoommatesPage() {
                     <SelectItem value="Male">Male</SelectItem>
                     <SelectItem value="Female">Female</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
-                    <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
