@@ -717,6 +717,122 @@ Error Response (404 Not Found):
 }
 ```
 
+### Saved Listings
+
+#### Get All Saved Listings for a User
+
+```http
+GET /api/saved-listings/user/:userId
+```
+
+Returns all listings saved by a specific user.
+
+Response (200 OK):
+
+```json
+[
+  {
+    "savedId": "number",
+    "savedAt": "string (ISO-8601 datetime)",
+    "listingId": "number"
+  }
+]
+```
+
+Error Response (500 Internal Server Error):
+
+```json
+{
+  "error": "Internal Server Error",
+  "message": "Failed to fetch saved listings"
+}
+```
+
+#### Check if User Saved a Listing
+
+```http
+GET /api/saved-listings/listing/:listingId/user/:userId
+```
+
+Check if a specific user has saved a specific listing.
+
+Response (200 OK):
+
+```json
+{
+  "savedId": "number",
+  "savedAt": "string (ISO-8601 datetime)",
+  "listingId": "number"
+}
+```
+
+Error Response (404 Not Found):
+
+```json
+{
+  "error": "Not Found",
+  "message": "Saved listing not found"
+}
+```
+
+#### Save a Listing
+
+```http
+POST /api/saved-listings
+```
+
+Request body:
+
+```json
+{
+  "userId": "number",
+  "listingId": "number"
+}
+```
+
+Response (201 Created):
+
+```json
+{
+  "savedId": "number",
+  "userId": "number",
+  "listingId": "number",
+  "savedAt": "string (ISO-8601 datetime)"
+}
+```
+
+Error Response (400 Bad Request):
+
+```json
+{
+  "error": "Bad Request",
+  "message": "Listing is already saved"
+}
+```
+
+#### Delete a Saved Listing
+
+```http
+DELETE /api/saved-listings/:savedId
+```
+
+Response (200 OK):
+
+```json
+{
+  "message": "Saved listing deleted successfully"
+}
+```
+
+Error Response (404 Not Found):
+
+```json
+{
+  "error": "Not Found",
+  "message": "Saved listing not found"
+}
+```
+
 ## Error Responses
 
 All API endpoints may return the following error responses:
