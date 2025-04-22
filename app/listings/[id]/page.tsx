@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
-import { MessageSquare, Share2, Bookmark, MapPin, DollarSign, Calendar as CalendarIcon, Star, Edit2, Trash2 } from "lucide-react";
+import { MessageSquare, Share2, Bookmark, MapPin, DollarSign, Calendar as CalendarIcon, Star, Edit2, Trash2, Check } from "lucide-react";
 import Image from "next/image";
 import { Listing, getListingById } from "../../services/listings";
 import { Review, getListingReviews, createReview, updateReview, deleteReview, handleReviewError } from "../../services/reviews";
@@ -39,6 +39,7 @@ export default function ListingDetailsPage() {
     comment: "",
   });
   const [editingReview, setEditingReview] = useState<Review | null>(null);
+  const [isLinkCopied, setIsLinkCopied] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -148,6 +149,22 @@ export default function ListingDetailsPage() {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      const currentUrl = window.location.href;
+      await navigator.clipboard.writeText(currentUrl);
+      setIsLinkCopied(true);
+      toast.success("Link copied to clipboard!");
+
+      // Reset the copied state after 2 seconds
+      setTimeout(() => {
+        setIsLinkCopied(false);
+      }, 2000);
+    } catch (error) {
+      toast.error("Failed to copy link");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -210,8 +227,17 @@ export default function ListingDetailsPage() {
                   >
                     <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
                   </Button>
-                  <Button variant="outline" size="icon">
-                    <Share2 className="h-4 w-4" />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleShare}
+                    className="relative"
+                  >
+                    {isLinkCopied ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Share2 className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -476,8 +502,8 @@ export default function ListingDetailsPage() {
                   >
                     <Star
                       className={`h-6 w-6 ${star <= reviewForm.rating
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-gray-300"
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-gray-300"
                         }`}
                     />
                   </button>
