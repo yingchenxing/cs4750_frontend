@@ -415,27 +415,96 @@ export default function ListingDetailsPage() {
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Message
               </Button>
-              {/* <Button className="w-full" variant="outline">
-                View Profile
-              </Button> */}
             </CardContent>
           </Card>
 
           {/* Availability Calendar */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle>Availability</CardTitle>
             </CardHeader>
-            <CardContent>
-              <Calendar
-                mode="single"
-                selected={new Date(listing.availTimeStart)}
-                className="rounded-md border"
-              />
+            <CardContent className="p-4">
+              <div className="p-2">
+                <Calendar
+                  mode="single"
+                  selected={new Date(listing.availTimeStart)}
+                  className="rounded-md border p-3"
+                  classNames={{
+                    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                    month: "space-y-4",
+                    caption: "flex justify-center pt-1 relative items-center",
+                    caption_label: "text-sm font-medium",
+                    nav: "space-x-1 flex items-center",
+                    table: "w-full border-collapse space-y-1",
+                    head_row: "flex w-full justify-between",
+                    head_cell: "w-9 font-normal text-[0.8rem] text-muted-foreground",
+                    row: "flex w-full mt-2 justify-between",
+                    cell: "text-center text-sm relative p-0 hover:bg-accent hover:text-accent-foreground rounded-md",
+                    day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md",
+                    day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                    day_today: "bg-accent text-accent-foreground",
+                    day_outside: "text-muted-foreground opacity-50",
+                    day_disabled: "text-muted-foreground opacity-50",
+                    day_hidden: "invisible"
+                  }}
+                />
+              </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       </div>
+
+      {/* Review Dialog */}
+      <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingReview ? "Edit Review" : "Write a Review"}</DialogTitle>
+            <DialogDescription>
+              Share your experience with this listing
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Rating</label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                    className="focus:outline-none"
+                  >
+                    <Star
+                      className={`h-6 w-6 ${star <= reviewForm.rating
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-gray-300"
+                        }`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Comment</label>
+              <Textarea
+                value={reviewForm.comment}
+                onChange={(e) =>
+                  setReviewForm({ ...reviewForm, comment: e.target.value })
+                }
+                placeholder="Write your review here..."
+                rows={4}
+              />
+            </div>
+            <Button
+              className="w-full"
+              onClick={handleReviewSubmit}
+              disabled={!reviewForm.comment.trim()}
+            >
+              {editingReview ? "Update Review" : "Post Review"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 
