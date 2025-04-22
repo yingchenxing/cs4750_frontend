@@ -21,9 +21,24 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
+  //loads sidebar conversations list when updated
+  const fetchConversations = async () => {
+    if (!user?.userId) {
+      return;
+    }
+    try {
+      const conversations = await messageService.getConversations(user.userId);
+      setConversations(conversations);
+    }
+    catch (error) {
+      console.error('Error fetching conversations:', error);
+      toast.error("Failed to load conversations");
+    }
+  };
+
   // Fetch all conversations
   useEffect(() => {
-    const fetchConversations = async () => {
+    const init = async () => {
       // 确保用户已登录且有 userId
       if (!user?.userId) {
         setIsLoading(false);
@@ -54,7 +69,7 @@ export default function MessagesPage() {
       }
     };
 
-    fetchConversations();
+    init();
   }, [user?.userId]); // 只在 userId 变化时重新获取
 
   const handleSendMessage = async () => {
@@ -71,30 +86,10 @@ export default function MessagesPage() {
       setMessages(prev => [sentMessage, ...prev]);
       setNewMessage("");
 
-      // Update conversations list
-      setConversations(prev => {
-        const updatedConversations = [...prev];
-        const conversationIndex = updatedConversations.findIndex(
-          conv => conv.partnerId === selectedPartnerId
-        );
-
-        const newLastMessage = {
-          content: newMessage,
-          sentAt: new Date().toISOString(),
-          isFromUser: true,
-        };
-
-        if (conversationIndex !== -1) {
-          updatedConversations[conversationIndex] = {
-            ...updatedConversations[conversationIndex],
-            lastMessage: newLastMessage,
-          };
-        }
-
-        return updatedConversations;
-      });
+      await fetchConversations();
     } catch (error) {
-      toast.error("Failed to send message");
+      console.error('Error fetching conversations:', error);
+      toast.error("Failed to load conversations");
     }
   };
 
