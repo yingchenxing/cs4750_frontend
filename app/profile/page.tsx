@@ -151,7 +151,7 @@ export default function ProfilePage() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
+          {/* <TabsTrigger value="security">Security</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="profile">
@@ -357,7 +357,7 @@ export default function ProfilePage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="security">
+        {/* <TabsContent value="security">
           <Card>
             <CardHeader>
               <CardTitle>Security Settings</CardTitle>
@@ -378,7 +378,7 @@ export default function ProfilePage() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   );
