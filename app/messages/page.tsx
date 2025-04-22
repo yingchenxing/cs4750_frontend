@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -14,6 +14,7 @@ import { Message, Conversation, messageService } from "../services/messages";
 
 export default function MessagesPage() {
   const { user } = useAuth();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
@@ -31,7 +32,7 @@ export default function MessagesPage() {
     try {
       const convos = await messageService.getConversations(user.userId);
       setConversations(convos);
-  
+
       // auto‑select the first one if nothing is selected yet
       if (convos.length && selectedPartnerId === null) {
         setSelectedPartnerId(convos[0].partnerId);
@@ -41,8 +42,8 @@ export default function MessagesPage() {
     } finally {
       setIsLoading(false);
     }
-  };  
-  
+  };
+
   useEffect(() => {
     fetchConversations();
   }, [user?.userId]);
@@ -70,14 +71,35 @@ export default function MessagesPage() {
       };
 
       const sentMessage = await messageService.sendMessage(messageData);
-      setMessages(prev => [sentMessage, ...prev]);
+      setMessages(prev => [...prev, sentMessage]);
       setNewMessage("");
 
-      // Update conversations list
-      await fetchConversations();
+      // Update conversations list locally
+      setConversations(prev => {
+        const updatedConversations = [...prev];
+        const conversationIndex = updatedConversations.findIndex(
+          conv => conv.partnerId === selectedPartnerId
+        );
+
+        if (conversationIndex !== -1) {
+          updatedConversations[conversationIndex] = {
+            ...updatedConversations[conversationIndex],
+            lastMessage: {
+              content: newMessage,
+              sentAt: new Date().toISOString(),
+              isFromUser: true
+            }
+          };
+          // Move the updated conversation to the top
+          const [updatedConv] = updatedConversations.splice(conversationIndex, 1);
+          updatedConversations.unshift(updatedConv);
+        }
+
+        return updatedConversations;
+      });
     } catch (error) {
-      console.error('Error fetching conversations:', error);
-      toast.error("Failed to load conversations");
+      console.error('Error sending message:', error);
+      toast.error("Failed to send message");
     }
   };
 
@@ -98,6 +120,18 @@ export default function MessagesPage() {
   const filteredConversations = conversations.filter(conv =>
     conv.partnerName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const scrollToBottom = () => {
+    if (scrollAreaRef.current) {
+      const scrollArea = scrollAreaRef.current;
+      scrollArea.scrollTop = scrollArea.scrollHeight;
+    }
+  };
+
+  // Add effect to scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   if (!user) {
     return (
@@ -130,8 +164,8 @@ export default function MessagesPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              </div>
-            </CardHeader>
+            </div>
+          </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[500px]">
               {filteredConversations.length === 0 ? (
@@ -208,7 +242,7 @@ export default function MessagesPage() {
             </CardHeader>
             <Separator />
             <CardContent className="flex-1 p-4">
-              <ScrollArea className="h-[400px]">
+              <ScrollArea className="h-[400px]" ref={scrollAreaRef}>
                 <div className="space-y-4">
                   {messages.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">

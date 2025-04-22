@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -21,6 +21,7 @@ export default function MessagesPage() {
   const { user } = useAuth();
   const params = useParams();
   const targetUserId = params?.userId ? parseInt(params.userId as string, 10) : null;
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -67,6 +68,7 @@ export default function MessagesPage() {
   }, [user?.userId, targetUserId, fetchConversations]);
 
   const handleSendMessage = async () => {
+    console.log(selectedPartnerId, newMessage, user?.userId);
     if (!selectedPartnerId || !newMessage.trim() || !user?.userId) return;
     try {
       const sent = await messageService.sendMessage({
@@ -74,7 +76,9 @@ export default function MessagesPage() {
         receiverId: selectedPartnerId,
         content: newMessage.trim(),
       });
+      console.log(sent);
       setMessages(prev => [...prev, sent]);
+      console.log(messages);
       setNewMessage("");
 
       // Update conversations list
@@ -97,6 +101,18 @@ export default function MessagesPage() {
   const filteredConversations = conversations.filter(conv =>
     conv.partnerName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const scrollToBottom = () => {
+    if (scrollAreaRef.current) {
+      const scrollArea = scrollAreaRef.current;
+      scrollArea.scrollTop = scrollArea.scrollHeight;
+    }
+  };
+
+  // Add effect to scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   if (!user) {
     return (
@@ -195,7 +211,7 @@ export default function MessagesPage() {
             </CardHeader>
             <Separator />
             <CardContent className="flex-1 p-4">
-              <ScrollArea className="h-[400px]">
+              <ScrollArea className="h-[400px]" ref={scrollAreaRef}>
                 <div className="space-y-4">
                   {messages.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">
