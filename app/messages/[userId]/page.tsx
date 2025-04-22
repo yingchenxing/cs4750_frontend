@@ -74,7 +74,7 @@ export default function MessagesPage() {
         receiverId: selectedPartnerId,
         content: newMessage.trim(),
       });
-      setMessages(prev => [sent, ...prev]);
+      setMessages(prev => [...prev, sent]);
       setNewMessage("");
 
       // Update conversations list
@@ -135,9 +135,8 @@ export default function MessagesPage() {
               {filteredConversations.map(conv => (
                 <div
                   key={conv.partnerId}
-                  className={`flex cursor-pointer items-center space-x-4 p-4 hover:bg-muted/50 ${
-                    selectedPartnerId === conv.partnerId ? "bg-muted" : ""
-                  }`}
+                  className={`flex cursor-pointer items-center space-x-4 p-4 hover:bg-muted/50 ${selectedPartnerId === conv.partnerId ? "bg-muted" : ""
+                    }`}
                   onClick={() => handleSelectConversation(conv.partnerId)}
                 >
                   <Avatar>
@@ -215,7 +214,7 @@ export default function MessagesPage() {
                             : "bg-muted"
                             }`}
                         >
-                          <p className="text-sm">{message.content}</p> 
+                          <p className="text-sm">{message.content}</p>
                           <p
                             className={`mt-1 text-xs ${message.sender.userId === user.userId
                               ? "text-primary-foreground/70"
@@ -226,11 +225,11 @@ export default function MessagesPage() {
                               hour: '2-digit',
                               minute: '2-digit'
                             })}
-                          </p> 
-                        </div> 
-                      </div> 
-                    )) 
-                  )} 
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </ScrollArea>
             </CardContent>
