@@ -11,7 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Send, Search } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { toast } from "sonner";
-import { Message, Conversation, messageService } from "../../services/messages";
+import {
+  Message,
+  Conversation,
+  messageService,
+} from "../../services/messages";
 
 export default function MessagesPage() {
   const { user } = useAuth();
@@ -141,14 +145,19 @@ export default function MessagesPage() {
                     <AvatarFallback>{conv.partnerName[0]}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">{conv.partnerName}</p>
+                    <p className="text-sm font-medium leading-none">
+                      {conv.partnerName}
+                    </p>
                     <p className="text-sm text-muted-foreground line-clamp-1">
                       {conv.lastMessage.content}
                     </p>
                   </div>
                   <div className="flex flex-col items-end space-y-1">
                     <p className="text-xs text-muted-foreground">
-                      {new Date(conv.lastMessage.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(conv.lastMessage.sentAt).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </p>
                   </div>
                 </div>
@@ -157,12 +166,14 @@ export default function MessagesPage() {
           </CardContent>
         </Card>
 
+        {/* Chat Interface */}
         {selectedPartnerId ? (
           <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-center space-x-4">
               {(() => {
                 const conversation = conversations.find(c => c.partnerId === selectedPartnerId);
                 if (!conversation) return null;
+
                 return (
                   <div className="flex items-center space-x-4">
                     <Avatar>
@@ -170,10 +181,14 @@ export default function MessagesPage() {
                         src={conversation.partnerProfilePicture}
                         alt={conversation.partnerName}
                       />
-                      <AvatarFallback>{conversation.partnerName[0]}</AvatarFallback>
+                      <AvatarFallback>
+                        {conversation.partnerName[0]}
+                      </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle>{conversation.partnerName}</CardTitle>
+                      <CardTitle>
+                        {conversation.partnerName}
+                      </CardTitle>
                     </div>
                   </div>
                 );
@@ -184,14 +199,33 @@ export default function MessagesPage() {
               <ScrollArea className="h-[400px]">
                 <div className="space-y-4">
                   {messages.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">No messages yet. Start a conversation!</p>
+                    <p className="text-center text-muted-foreground py-8">
+                      No messages yet. Start a conversation!
+                    </p>
                   ) : (
-                    messages.map(message => (
-                      <div key={message.messageId} className={`flex ${message.sender.userId === user.userId ? 'justify-end' : 'justify-start'}`}> 
-                        <div className={`max-w-[70%] rounded-lg p-3 ${message.sender.userId === user.userId ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}> 
+                    messages.map((message) => (
+                      <div
+                        key={message.messageId}
+                        className={`flex ${message.sender.userId === user.userId ? "justify-end" : "justify-start"
+                          }`}
+                      >
+                        <div
+                          className={`max-w-[70%] rounded-lg p-3 ${message.sender.userId === user.userId
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted"
+                            }`}
+                        >
                           <p className="text-sm">{message.content}</p> 
-                          <p className={`mt-1 text-xs ${message.sender.userId === user.userId ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}> 
-                            {new Date(message.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 
+                          <p
+                            className={`mt-1 text-xs ${message.sender.userId === user.userId
+                              ? "text-primary-foreground/70"
+                              : "text-muted-foreground"
+                              }`}
+                          >
+                            {new Date(message.sentAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
                           </p> 
                         </div> 
                       </div> 
@@ -206,17 +240,26 @@ export default function MessagesPage() {
                 <Input
                   placeholder="Type a message..."
                   value={newMessage}
-                  onChange={e => setNewMessage(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
                 />
-                <Button onClick={handleSendMessage}><Send className="h-4 w-4" /></Button>
+                <Button onClick={handleSendMessage}>
+                  <Send className="h-4 w-4" />
+                </Button>
               </div>
             </CardContent>
           </Card>
         ) : (
           <Card className="flex items-center justify-center">
             <CardContent>
-              <p className="text-muted-foreground">Select a conversation to start messaging</p>
+              <p className="text-muted-foreground">
+                Select a conversation to start messaging
+              </p>
             </CardContent>
           </Card>
         )}
