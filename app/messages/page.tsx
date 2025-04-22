@@ -21,41 +21,43 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch all conversations
+  //loads sidebar conversations list when updated
+  const fetchConversations = async () => {
+    if (!user?.userId) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const convos = await messageService.getConversations(user.userId);
+      setConversations(convos);
+  
+      // auto‑select the first one if nothing is selected yet
+      if (convos.length && selectedPartnerId === null) {
+        setSelectedPartnerId(convos[0].partnerId);
+      }
+    } catch (e) {
+      toast.error("Failed to load conversations");
+    } finally {
+      setIsLoading(false);
+    }
+  };  
+  
   useEffect(() => {
-    const fetchConversations = async () => {
-      // 确保用户已登录且有 userId
-      if (!user?.userId) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const conversations = await messageService.getConversations(user.userId);
-        setConversations(conversations);
-
-        // 如果有会话，自动选择第一个
-        if (conversations.length > 0) {
-          const firstConversation = conversations[0];
-          setSelectedPartnerId(firstConversation.partnerId);
-
-          // 加载第一个会话的消息
-          const messages = await messageService.getConversation(
-            user.userId,
-            firstConversation.partnerId
-          );
-          setMessages(messages);
-        }
-      } catch (error) {
-        console.error('Error fetching conversations:', error);
-        toast.error("Failed to load conversations");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchConversations();
-  }, [user?.userId]); // 只在 userId 变化时重新获取
+  }, [user?.userId]);
+
+  //when new partner selected by init or clicking
+  useEffect(() => {
+    if (!user?.userId || selectedPartnerId === null) return;
+    (async () => {
+      const msgs = await messageService.getConversation(
+        user.userId,
+        selectedPartnerId
+      );
+      setMessages(msgs);
+    })();
+  }, [user?.userId, selectedPartnerId]);
 
   const handleSendMessage = async () => {
     if (!selectedPartnerId || !newMessage.trim() || !user?.userId) return;
@@ -72,29 +74,10 @@ export default function MessagesPage() {
       setNewMessage("");
 
       // Update conversations list
-      setConversations(prev => {
-        const updatedConversations = [...prev];
-        const conversationIndex = updatedConversations.findIndex(
-          conv => conv.partnerId === selectedPartnerId
-        );
-
-        const newLastMessage = {
-          content: newMessage,
-          sentAt: new Date().toISOString(),
-          isFromUser: true,
-        };
-
-        if (conversationIndex !== -1) {
-          updatedConversations[conversationIndex] = {
-            ...updatedConversations[conversationIndex],
-            lastMessage: newLastMessage,
-          };
-        }
-
-        return updatedConversations;
-      });
+      await fetchConversations();
     } catch (error) {
-      toast.error("Failed to send message");
+      console.error('Error fetching conversations:', error);
+      toast.error("Failed to load conversations");
     }
   };
 
@@ -147,8 +130,8 @@ export default function MessagesPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-            </div>
-          </CardHeader>
+              </div>
+            </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[500px]">
               {filteredConversations.length === 0 ? (
@@ -298,4 +281,4 @@ export default function MessagesPage() {
       </div>
     </div>
   );
-} 
+}

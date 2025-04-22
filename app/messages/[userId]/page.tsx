@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -29,93 +29,67 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchConversations = useCallback(async (): Promise<Conversation[]> => {
+    if (!user?.userId) {
+      return []; // always return an array
+    }
+    try {
+      const convos = await messageService.getConversations(user.userId);
+      setConversations(convos);
+      return convos;
+    } catch {
+      toast.error("Failed to load conversations");
+      return [];
+    }
+  }, [user?.userId]);
+
   // Initialize chat with target user
   useEffect(() => {
-    const initializeChat = async () => {
-      if (!user?.userId || !targetUserId) return;
-
-      try {
-        // Fetch messages with target user
-        const messages = await messageService.getConversation(user.userId, targetUserId);
-        setMessages(messages);
-        setSelectedPartnerId(targetUserId);
-      } catch (error) {
-        console.error('Error initializing chat:', error);
-        setMessages([]);
-      }
-    };
-
-    initializeChat();
-  }, [targetUserId, user]);
-
-  // Fetch all conversations
-  useEffect(() => {
-    const fetchConversations = async () => {
-      if (!user?.userId) return;
-
-      try {
-        const conversations = await messageService.getConversations(user.userId);
-        setConversations(conversations);
-      } catch (error) {
-        console.error('Error fetching conversations:', error);
-        toast.error("Failed to load conversations");
-      } finally {
+    const initialize = async () => {
+      if (!user?.userId) {
         setIsLoading(false);
+        return;
       }
+      const all = await fetchConversations();
+      const partner = targetUserId ?? all[0]?.partnerId;
+      if (partner) {
+        try {
+          const convMsgs = await messageService.getConversation(user.userId, partner);
+          setMessages(convMsgs);
+          setSelectedPartnerId(partner);
+        } catch {
+          setMessages([]);
+        }
+      }
+      setIsLoading(false);
     };
-
-    fetchConversations();
-  }, [user]);
+    initialize();
+  }, [user?.userId, targetUserId, fetchConversations]);
 
   const handleSendMessage = async () => {
     if (!selectedPartnerId || !newMessage.trim() || !user?.userId) return;
-
     try {
-      const messageData = {
+      const sent = await messageService.sendMessage({
         senderId: user.userId,
         receiverId: selectedPartnerId,
-        content: newMessage,
-      };
-
-      const sentMessage = await messageService.sendMessage(messageData);
-      setMessages(prev => [sentMessage, ...prev]);
+        content: newMessage.trim(),
+      });
+      setMessages(prev => [sent, ...prev]);
       setNewMessage("");
 
       // Update conversations list
-      setConversations(prev => {
-        const updatedConversations = [...prev];
-        const conversationIndex = updatedConversations.findIndex(
-          conv => conv.partnerId === selectedPartnerId
-        );
-
-        const newLastMessage = {
-          content: newMessage,
-          sentAt: new Date().toISOString(),
-          isFromUser: true,
-        };
-
-        if (conversationIndex !== -1) {
-          updatedConversations[conversationIndex] = {
-            ...updatedConversations[conversationIndex],
-            lastMessage: newLastMessage,
-          };
-        }
-
-        return updatedConversations;
-      });
-    } catch (error) {
+      await fetchConversations();
+    } catch {
       toast.error("Failed to send message");
     }
   };
 
   const handleSelectConversation = async (partnerId: number) => {
     setSelectedPartnerId(partnerId);
-
     try {
-      const conversationMessages = await messageService.getConversation(user!.userId, partnerId);
-      setMessages(conversationMessages);
-    } catch (error) {
-      console.error('Error fetching messages:', error);
+      const convMsgs = await messageService.getConversation(user!.userId, partnerId);
+      setMessages(convMsgs);
+    } catch {
       setMessages([]);
     }
   };
@@ -132,10 +106,17 @@ export default function MessagesPage() {
     );
   }
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto max-w-7xl px-4 py-10">
+        <div className="text-center">Loading conversations...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto max-w-7xl px-4 py-10">
       <div className="grid h-[600px] gap-4 md:grid-cols-[300px_1fr]">
-        {/* Conversations List */}
         <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Messages</CardTitle>
@@ -145,27 +126,23 @@ export default function MessagesPage() {
                 placeholder="Search conversations..."
                 className="pl-8"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
               />
             </div>
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[500px]">
-              {filteredConversations.map((conv) => (
+              {filteredConversations.map(conv => (
                 <div
                   key={conv.partnerId}
-                  className={`flex cursor-pointer items-center space-x-4 p-4 hover:bg-muted/50 ${selectedPartnerId === conv.partnerId ? "bg-muted" : ""
-                    }`}
+                  className={`flex cursor-pointer items-center space-x-4 p-4 hover:bg-muted/50 ${
+                    selectedPartnerId === conv.partnerId ? "bg-muted" : ""
+                  }`}
                   onClick={() => handleSelectConversation(conv.partnerId)}
                 >
                   <Avatar>
-                    <AvatarImage
-                      src={conv.partnerProfilePicture}
-                      alt={conv.partnerName}
-                    />
-                    <AvatarFallback>
-                      {conv.partnerName[0]}
-                    </AvatarFallback>
+                    <AvatarImage src={conv.partnerProfilePicture} alt={conv.partnerName} />
+                    <AvatarFallback>{conv.partnerName[0]}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium leading-none">
@@ -238,7 +215,7 @@ export default function MessagesPage() {
                             : "bg-muted"
                             }`}
                         >
-                          <p className="text-sm">{message.content}</p>
+                          <p className="text-sm">{message.content}</p> 
                           <p
                             className={`mt-1 text-xs ${message.sender.userId === user.userId
                               ? "text-primary-foreground/70"
@@ -249,11 +226,11 @@ export default function MessagesPage() {
                               hour: '2-digit',
                               minute: '2-digit'
                             })}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
+                          </p> 
+                        </div> 
+                      </div> 
+                    )) 
+                  )} 
                 </div>
               </ScrollArea>
             </CardContent>
@@ -289,4 +266,4 @@ export default function MessagesPage() {
       </div>
     </div>
   );
-} 
+}
