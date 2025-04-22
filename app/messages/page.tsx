@@ -45,28 +45,22 @@ export default function MessagesPage() {
         return;
       }
 
-      try {
-        const conversations = await messageService.getConversations(user.userId);
-        setConversations(conversations);
+      await fetchConversations();
 
-        // 如果有会话，自动选择第一个
-        if (conversations.length > 0) {
-          const firstConversation = conversations[0];
-          setSelectedPartnerId(firstConversation.partnerId);
+      // 如果有会话，自动选择第一个
+      if (conversations.length > 0) {
+        const firstConversation = conversations[0];
+        setSelectedPartnerId(firstConversation.partnerId);
 
-          // 加载第一个会话的消息
-          const messages = await messageService.getConversation(
-            user.userId,
-            firstConversation.partnerId
-          );
-          setMessages(messages);
-        }
-      } catch (error) {
-        console.error('Error fetching conversations:', error);
-        toast.error("Failed to load conversations");
-      } finally {
-        setIsLoading(false);
+        // 加载第一个会话的消息
+        const msgs = await messageService.getConversation(
+          user.userId,
+          firstConversation.partnerId
+        );
+        setMessages(msgs);
       }
+
+      setIsLoading(false);
     };
 
     init();
@@ -86,6 +80,7 @@ export default function MessagesPage() {
       setMessages(prev => [sentMessage, ...prev]);
       setNewMessage("");
 
+      // Update conversations list
       await fetchConversations();
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -140,48 +135,31 @@ export default function MessagesPage() {
                 placeholder="Search conversations..."
                 className="pl-8"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
               />
-            </div>
-          </CardHeader>
+              </div>
+            </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[500px]">
               {filteredConversations.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  No conversations found
-                </div>
+                <div className="p-4 text-center text-muted-foreground">No conversations found</div>
               ) : (
-                filteredConversations.map((conv) => (
+                filteredConversations.map(conv => (
                   <div
                     key={conv.partnerId}
-                    className={`flex cursor-pointer items-center space-x-4 p-4 hover:bg-muted/50 ${selectedPartnerId === conv.partnerId ? "bg-muted" : ""
-                      }`}
+                    className={`flex cursor-pointer items-center space-x-4 p-4 hover:bg-muted/50 ${selectedPartnerId === conv.partnerId ? "bg-muted" : ""}`}
                     onClick={() => handleSelectConversation(conv.partnerId)}
                   >
                     <Avatar>
-                      <AvatarImage
-                        src={conv.partnerProfilePicture}
-                        alt={conv.partnerName}
-                      />
-                      <AvatarFallback>
-                        {conv.partnerName[0]}
-                      </AvatarFallback>
+                      <AvatarImage src={conv.partnerProfilePicture} alt={conv.partnerName} />
+                      <AvatarFallback>{conv.partnerName[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {conv.partnerName}
-                      </p>
-                      <p className="text-sm text-muted-foreground line-clamp-1">
-                        {conv.lastMessage.content}
-                      </p>
+                      <p className="text-sm font-medium leading-none">{conv.partnerName}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-1">{conv.lastMessage.content}</p>
                     </div>
                     <div className="flex flex-col items-end space-y-1">
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(conv.lastMessage.sentAt).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{new Date(conv.lastMessage.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
                   </div>
                 ))
@@ -197,24 +175,8 @@ export default function MessagesPage() {
               {(() => {
                 const conversation = conversations.find(c => c.partnerId === selectedPartnerId);
                 if (!conversation) return null;
-
                 return (
-                  <div className="flex items-center space-x-4">
-                    <Avatar>
-                      <AvatarImage
-                        src={conversation.partnerProfilePicture}
-                        alt={conversation.partnerName}
-                      />
-                      <AvatarFallback>
-                        {conversation.partnerName[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle>
-                        {conversation.partnerName}
-                      </CardTitle>
-                    </div>
-                  </div>
+                  <div className="flex items-center(space-x-4)"> <Avatar><AvatarImage src={conversation.partnerProfilePicture} alt={conversation.partnerName} /><AvatarFallback>{conversation.partnerName[0]}</AvatarFallback></Avatar><div><CardTitle>{conversation.partnerName}</CardTitle></div></div>
                 );
               })()}
             </CardHeader>
@@ -222,75 +184,15 @@ export default function MessagesPage() {
             <CardContent className="flex-1 p-4">
               <ScrollArea className="h-[400px]">
                 <div className="space-y-4">
-                  {messages.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">
-                      No messages yet. Start a conversation!
-                    </p>
-                  ) : (
-                    messages.map((message) => (
-                      <div
-                        key={message.messageId}
-                        className={`flex ${message.sender.userId === user.userId ? "justify-end" : "justify-start"
-                          }`}
-                      >
-                        <div
-                          className={`max-w-[70%] rounded-lg p-3 ${message.sender.userId === user.userId
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
-                            }`}
-                        >
-                          <p className="text-sm">{message.content}</p>
-                          <p
-                            className={`mt-1 text-xs ${message.sender.userId === user.userId
-                              ? "text-primary-foreground/70"
-                              : "text-muted-foreground"
-                              }`}
-                          >
-                            {new Date(message.sentAt).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
+                  {messages.length === 0 ? <p className="text-center text-muted-foreground py-8">No messages yet. Start a conversation!</p> : messages.map(message => <div key={message.messageId} className={`flex ${message.sender.userId === user.userId ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[70%] rounded-lg p-3 ${message.sender.userId === user.userId ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}><p className="text-sm">{message.content}</p><p className={`mt-1 text-xs ${message.sender.userId === user.userId ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>{new Date(message.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p></div></div>)}
                 </div>
               </ScrollArea>
             </CardContent>
             <Separator />
-            <CardContent className="p-4">
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Type a message..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                />
-                <Button onClick={handleSendMessage}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
+            <CardContent className="p-4"><div className="flex space-x-2"><Input placeholder="Type a message..." value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }} /><Button onClick={handleSendMessage}><Send className="h-4 w-4" /></Button></div></CardContent>
           </Card>
-        ) : (
-          <Card className="flex items-center justify-center">
-            <CardContent>
-              <p className="text-muted-foreground">
-                {conversations.length === 0
-                  ? "No conversations yet"
-                  : "Select a conversation to start messaging"
-                }
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        ) : <Card className="flex items-center justify-center"><CardContent><p className="text-muted-foreground">Select a conversation to start messaging</p></CardContent></Card>}
       </div>
     </div>
   );
-} 
+}
