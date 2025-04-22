@@ -128,7 +128,7 @@ export default function ProfilePage() {
             <CardDescription>You need to be logged in to view your profile.</CardDescription>
           </CardHeader>
           <CardFooter>
-            <Button className="w-full" onClick={() => window.location.href = '/login'}>
+            <Button className="w-full" onClick={() => window.location.href = '/auth/login'}>
               Go to Login
             </Button>
           </CardFooter>
