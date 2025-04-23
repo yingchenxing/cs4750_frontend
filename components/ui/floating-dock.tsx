@@ -81,9 +81,9 @@ export const FloatingDock = ({
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/my-posts" className="flex items-center">
+              <Link href="/my-listings" className="flex items-center">
                 <FileText className="mr-2 h-4 w-4" />
-                My Post
+                My Listings
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

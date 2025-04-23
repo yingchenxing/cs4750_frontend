@@ -148,7 +148,7 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
           {/* <TabsTrigger value="security">Security</TabsTrigger> */}
