@@ -4,19 +4,19 @@
 **GitHub Repositories**:
 
 - **Frontend** (latest code in `master`): [https://github.com/yingchenxing/cs4750_frontend](https://github.com/yingchenxing/cs4750_frontend)
-- **Backend** (latest code in `backend`): [https://github.com/yingchenxing/cs4750_frontend/tree/node](https://github.com/yingchenxing/cs4750_frontend/tree/node)
+- **Backend** (latest code in `node`): [https://github.com/yingchenxing/cs4750_frontend/tree/node](https://github.com/yingchenxing/cs4750_frontend/tree/node)
 
 ## About RoomSync
 
 RoomSync is a full stack web application developed for the CS4750 course. It helps users find roommates and manage house listings for shared living arrangements. The application uses a modern frontend built with Next.js and a Spring Boot backend connected to a PostgreSQL database hosted by UVA.
 
-### Current Features (MVP)
+<!-- ### Current Features (MVP)
 
 - Authentication – Email and password login/signup
 - Write – Users can create new house listings
 - Read – Users can view all existing listings
 
-Planned features include listing updates, deletions, filters, and messaging.
+Planned features include listing updates, deletions, filters, and messaging. -->
 
 ## Tech Stack
 
