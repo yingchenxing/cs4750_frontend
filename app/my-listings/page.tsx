@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { MapPin, Calendar, DollarSign, Building, PenSquare, Trash2 } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { toast } from "sonner";
-import axios from 'axios';
+import { getUserListings, deleteListing, type Listing } from "@/app/services/listings";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,30 +20,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-interface Listing {
-  listingId: number;
-  userId: number;
-  title: string;
-  description: string;
-  propertyType: string;
-  location: string;
-  rentPrice: number;
-  leaseDuration: number;
-  availTimeStart: string;
-  availTimeEnd: string;
-  image: string;
-  isSublease: boolean;
-  subleaseReason?: string;
-  user: {
-    userId: number;
-    username: string;
-    email: string;
-    phoneNumber: string;
-    profilePicture: string;
-  };
-}
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://cs4750.onrender.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function MyListingsPage() {
   const { user } = useAuth();
@@ -60,10 +37,8 @@ export default function MyListingsPage() {
     }
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/listings/publisher/${user.userId}`, {
-        withCredentials: true,
-      });
-      setListings(response.data);
+      const data = await getUserListings(user.userId);
+      setListings(data);
       setError(null);
     } catch (err) {
       setError("Failed to fetch your listings. Please try again later.");
@@ -80,9 +55,7 @@ export default function MyListingsPage() {
   const handleDelete = async (listingId: number) => {
     try {
       setDeletingId(listingId);
-      await axios.delete(`${API_BASE_URL}/api/listings/${listingId}`, {
-        withCredentials: true,
-      });
+      await deleteListing(listingId);
       toast.success("Listing deleted successfully");
       // Refresh the listings
       fetchMyListings();

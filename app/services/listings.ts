@@ -81,3 +81,24 @@ export const createListing = async (
     throw error
   }
 }
+
+export const getUserListings = async (userId: number): Promise<Listing[]> => {
+  try {
+    const response = await api.get<Listing[]>(
+      `/api/listings/publisher/${userId}`
+    )
+    return response.data
+  } catch (error) {
+    console.error('Error fetching user listings:', error)
+    throw error
+  }
+}
+
+export const deleteListing = async (listingId: number): Promise<void> => {
+  try {
+    await api.delete(`/api/listings/${listingId}`)
+  } catch (error) {
+    console.error('Error deleting listing:', error)
+    throw error
+  }
+}

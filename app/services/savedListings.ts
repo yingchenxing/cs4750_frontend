@@ -19,6 +19,37 @@ export interface SavedListing {
   savedAt: string
 }
 
+export interface SavedListingWithDetails {
+  savedId: number
+  savedAt: string
+  listing: {
+    listing_id: number
+    title: string
+    description: string
+    property_type: string
+    location: string
+    rent_price: number
+    lease_duration: number
+    avail_time_start: string
+    avail_time_end: string
+    image: string
+    User: {
+      user_id: number
+      username: string
+      email: string
+      phone_number: string
+      profile_picture: string
+    }
+    HouseListing?: {
+      house_listing_id: number
+    }
+    SubleaseListing?: {
+      sublease_listing_id: number
+      sublease_reason: string
+    }
+  }
+}
+
 export const checkIfListingSaved = async (
   listingId: number,
   userId: number
@@ -58,6 +89,20 @@ export const deleteSavedListing = async (savedId: number): Promise<void> => {
     await api.delete(`/api/saved-listings/${savedId}`)
   } catch (error) {
     console.error('Error deleting saved listing:', error)
+    throw handleSavedListingError(error)
+  }
+}
+
+export const getUserSavedListings = async (
+  userId: number
+): Promise<SavedListingWithDetails[]> => {
+  try {
+    const response = await api.get<SavedListingWithDetails[]>(
+      `/api/saved-listings/user/${userId}`
+    )
+    return response.data
+  } catch (error) {
+    console.error('Error fetching user saved listings:', error)
     throw handleSavedListingError(error)
   }
 }

@@ -7,44 +7,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { MapPin, Calendar, DollarSign, Building, Bookmark } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { toast } from "sonner";
-import axios from 'axios';
-
-interface SavedListing {
-  savedId: number;
-  savedAt: string;
-  listing: {
-    listing_id: number;
-    title: string;
-    description: string;
-    property_type: string;
-    location: string;
-    rent_price: number;
-    lease_duration: number;
-    avail_time_start: string;
-    avail_time_end: string;
-    image: string;
-    User: {
-      user_id: number;
-      username: string;
-      email: string;
-      phone_number: string;
-      profile_picture: string;
-    };
-    HouseListing?: {
-      house_listing_id: number;
-    };
-    SubleaseListing?: {
-      sublease_listing_id: number;
-      sublease_reason: string;
-    };
-  };
-}
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://cs4750.onrender.com';
+import { getUserSavedListings, type SavedListingWithDetails } from "@/app/services/savedListings";
 
 export default function SavedListingsPage() {
   const { user } = useAuth();
-  const [savedListings, setSavedListings] = useState<SavedListing[]>([]);
+  const [savedListings, setSavedListings] = useState<SavedListingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,11 +24,9 @@ export default function SavedListingsPage() {
       }
 
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/saved-listings/user/${user.userId}`, {
-          withCredentials: true,
-        });
-        setSavedListings(response.data);
-      } catch (err) {
+        const data = await getUserSavedListings(user.userId);
+        setSavedListings(data);
+      } catch (err: any) {
         setError("Failed to fetch saved listings. Please try again later.");
         console.error(err);
       } finally {
