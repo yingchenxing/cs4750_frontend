@@ -153,6 +153,54 @@ Response:
 ]
 ```
 
+#### Get Listings by Publisher
+
+```http
+GET /api/listings/publisher/{userId}
+```
+
+Parameters:
+
+- `userId` (path parameter): The ID of the publisher/user whose listings to fetch
+
+Response:
+
+```json
+[
+  {
+    "listingId": "number",
+    "userId": "number",
+    "title": "string",
+    "description": "string",
+    "propertyType": "string",
+    "location": "string",
+    "rentPrice": "number",
+    "leaseDuration": "number",
+    "availTimeStart": "string",
+    "availTimeEnd": "string",
+    "image": "string",
+    "isSublease": "boolean",
+    "subleaseReason": "string (only if isSublease is true)",
+    "user": {
+      "userId": "number",
+      "username": "string",
+      "email": "string",
+      "phoneNumber": "string",
+      "profilePicture": "string"
+    }
+  }
+]
+```
+
+Error Response (500 Internal Server Error):
+
+```json
+{
+  "error": "Internal Server Error",
+  "message": "Failed to fetch listings by publisher"
+}
+```
+
 #### Get Listing by ID
 
 ```http
@@ -235,6 +283,44 @@ Response:
   "availTimeStart": "string",
   "availTimeEnd": "string",
   "image": "string"
+}
+```
+
+#### Delete Listing
+
+```http
+DELETE /api/listings/{listingId}
+```
+
+Parameters:
+
+- `listingId` (path parameter): The ID of the listing to delete
+
+Response (200 OK):
+
+```json
+{
+  "message": "Listing deleted successfully"
+}
+```
+
+Error Responses:
+
+404 Not Found:
+
+```json
+{
+  "error": "Not Found",
+  "message": "Listing not found"
+}
+```
+
+500 Internal Server Error:
+
+```json
+{
+  "error": "Internal Server Error",
+  "message": "Failed to delete listing"
 }
 ```
 
@@ -725,7 +811,7 @@ Error Response (404 Not Found):
 GET /api/saved-listings/user/:userId
 ```
 
-Returns all listings saved by a specific user.
+Returns all listings saved by a specific user, including complete listing details.
 
 Response (200 OK):
 
@@ -734,7 +820,32 @@ Response (200 OK):
   {
     "savedId": "number",
     "savedAt": "string (ISO-8601 datetime)",
-    "listingId": "number"
+    "listing": {
+      "listing_id": "number",
+      "title": "string",
+      "description": "string",
+      "property_type": "string",
+      "location": "string",
+      "rent_price": "number",
+      "lease_duration": "number",
+      "avail_time_start": "string (ISO-8601 datetime)",
+      "avail_time_end": "string (ISO-8601 datetime)",
+      "image": "string",
+      "User": {
+        "user_id": "number",
+        "username": "string",
+        "email": "string",
+        "phone_number": "string",
+        "profile_picture": "string"
+      },
+      "HouseListing": {
+        "house_listing_id": "number"
+      },
+      "SubleaseListing": {
+        "sublease_listing_id": "number",
+        "sublease_reason": "string"
+      }
+    }
   }
 ]
 ```
@@ -879,41 +990,5 @@ All API endpoints may return the following error responses:
 {
   "error": "Internal Server Error",
   "message": "An unexpected error occurred"
-}
-```
-
-## Rate Limiting
-
-API requests are limited to:
-
-- 100 requests per minute for authenticated users
-- 20 requests per minute for unauthenticated users
-
-Rate limit headers are included in the response:
-
-```
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 95
-X-RateLimit-Reset: 1620000000
-```
-
-## Pagination
-
-Endpoints that return lists support pagination using the following query parameters:
-
-- `page`: Page number (default: 1)
-- `limit`: Items per page (default: 10, max: 100)
-
-Pagination metadata is included in the response:
-
-```json
-{
-  "data": [],
-  "pagination": {
-    "total": "number",
-    "page": "number",
-    "limit": "number",
-    "totalPages": "number"
-  }
 }
 ```

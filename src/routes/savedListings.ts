@@ -1,5 +1,11 @@
 import express from 'express'
-import { SavedListing } from '../models'
+import {
+  SavedListing,
+  Listing,
+  User,
+  HouseListing,
+  SubleaseListing,
+} from '../models'
 
 const router = express.Router()
 
@@ -10,6 +16,31 @@ router.get('/user/:userId', async (req, res) => {
     const savedListings = await SavedListing.findAll({
       where: { user_id: parseInt(userId) },
       order: [['saved_at', 'DESC']],
+      include: [
+        {
+          model: Listing,
+          include: [
+            {
+              model: User,
+              attributes: [
+                'user_id',
+                'username',
+                'email',
+                'phone_number',
+                'profile_picture',
+              ],
+            },
+            {
+              model: HouseListing,
+              attributes: ['house_listing_id'],
+            },
+            {
+              model: SubleaseListing,
+              attributes: ['sublease_listing_id', 'sublease_reason'],
+            },
+          ],
+        },
+      ],
     })
 
     return res.json(
@@ -18,7 +49,7 @@ router.get('/user/:userId', async (req, res) => {
         return {
           savedId: plainSaved.saved_id,
           savedAt: plainSaved.saved_at,
-          listingId: plainSaved.listing_id,
+          listing: plainSaved.Listing,
         }
       })
     )

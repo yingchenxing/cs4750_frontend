@@ -181,6 +181,123 @@ router.post('/:listingId/save', async (req, res) => {
   }
 })
 
+// Get listings by publisher ID
+router.get('/publisher/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params
+    const listings = await Listing.findAll({
+      where: { user_id: parseInt(userId) },
+      include: [
+        {
+          model: User,
+          attributes: [
+            'user_id',
+            'username',
+            'email',
+            'phone_number',
+            'profile_picture',
+          ],
+        },
+        {
+          model: HouseListing,
+          attributes: ['house_listing_id'],
+        },
+        {
+          model: SubleaseListing,
+          attributes: ['sublease_listing_id', 'sublease_reason'],
+        },
+      ],
+    })
+
+    res.json(
+      listings.map((listing) => {
+        const plainListing = listing.get({ plain: true })
+        return {
+          listingId: plainListing.listing_id,
+          userId: plainListing.user_id,
+          title: plainListing.title,
+          description: plainListing.description,
+          propertyType: plainListing.property_type,
+          location: plainListing.location,
+          rentPrice: plainListing.rent_price,
+          leaseDuration: plainListing.lease_duration,
+          availTimeStart: plainListing.avail_time_start,
+          availTimeEnd: plainListing.avail_time_end,
+          image: plainListing.image,
+          isSublease: !!plainListing.SubleaseListing,
+          subleaseReason: plainListing.SubleaseListing?.sublease_reason,
+          user: plainListing.User
+            ? {
+                userId: plainListing.User.user_id,
+                username: plainListing.User.username,
+                email: plainListing.User.email,
+                phoneNumber: plainListing.User.phone_number,
+                profilePicture: plainListing.User.profile_picture,
+              }
+            : null,
+        }
+      })
+    )
+  } catch (error) {
+    console.error('Error fetching listings by publisher:', error)
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Failed to fetch listings by publisher',
+    })
+  }
+})
+
+// Delete listing by ID
+router.delete('/:listingId', async (req, res) => {
+  const t: Transaction = await sequelize.transaction()
+
+  try {
+    const { listingId } = req.params
+
+    // First check if the listing exists
+    const listing = await Listing.findByPk(parseInt(listingId))
+    if (!listing) {
+      await t.rollback()
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Listing not found',
+      })
+    }
+
+    // Delete associated records first
+    await SubleaseListing.destroy({
+      where: { listing_id: parseInt(listingId) },
+      transaction: t,
+    })
+
+    await HouseListing.destroy({
+      where: { listing_id: parseInt(listingId) },
+      transaction: t,
+    })
+
+    // Delete saved listings references
+    await SavedListing.destroy({
+      where: { listing_id: parseInt(listingId) },
+      transaction: t,
+    })
+
+    // Finally delete the main listing
+    await listing.destroy({ transaction: t })
+
+    await t.commit()
+    return res.status(200).json({
+      message: 'Listing deleted successfully',
+    })
+  } catch (error) {
+    await t.rollback()
+    console.error('Error deleting listing:', error)
+    return res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Failed to delete listing',
+    })
+  }
+})
+
 // Get listing by ID (this should be the last route)
 router.get('/:listingId', async (req, res) => {
   try {
