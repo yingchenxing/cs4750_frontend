@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt'
+import { User } from '../models'
 
 const SALT_ROUNDS = 10
 
@@ -17,5 +18,3 @@ export const getUserByEmail = async (email: string) => {
   const user = await User.findOne({ where: { email } })
   return user
 }
-
-import { User } from '../models'
