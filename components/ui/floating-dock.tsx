@@ -18,7 +18,8 @@ import {
   LogOut,
   Settings,
   Bookmark,
-  Bell
+  Bell,
+  FileText
 } from "lucide-react";
 import Image from "next/image";
 import {
@@ -71,6 +72,18 @@ export const FloatingDock = ({
               <Link href="/profile" className="flex items-center">
                 <User className="mr-2 h-4 w-4" />
                 Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/saved" className="flex items-center">
+                <Bookmark className="mr-2 h-4 w-4" />
+                Saved Listings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/my-posts" className="flex items-center">
+                <FileText className="mr-2 h-4 w-4" />
+                My Post
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
