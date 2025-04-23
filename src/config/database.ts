@@ -10,10 +10,10 @@ const sequelize = new Sequelize({
   username: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'cs4750',
-  logging: false, // Set to console.log to see SQL queries
+  logging: false,
   define: {
-    timestamps: false, // Disable automatic timestamp fields (createdAt, updatedAt)
-    underscored: true, // Use snake_case rather than camelCase column names
+    timestamps: false,
+    underscored: true,
   },
 })
 
